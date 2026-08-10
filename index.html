@@ -1,0 +1,117 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="color-scheme" content="dark" />
+    <meta name="theme-color" content="#080808" />
+    <meta name="description" content="MiniMax H3 structured video prompt editor for Ref2VA, T2VA, I2VA, and FL2VA." />
+    <title>H3 Prompt Studio</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div class="app-shell">
+      <header class="app-header">
+        <div class="brand-block">
+          <div class="brand-mark">H3</div>
+          <div>
+            <h1>Prompt Studio</h1>
+            <p>MiniMax H3 · 结构化视频提示词编辑器</p>
+          </div>
+        </div>
+        <div class="header-actions">
+          <span class="save-state" id="save-state"><i></i> 已自动保存</span>
+          <details class="project-menu" id="project-menu">
+            <summary class="button ghost">项目</summary>
+            <div class="project-menu-panel">
+              <button type="button" id="export-workspace">导出工作区</button>
+              <button type="button" id="import-workspace">导入工作区</button>
+              <button type="button" id="load-sample">载入当前模式示例</button>
+              <button type="button" class="danger" id="reset-mode">清空当前模式</button>
+            </div>
+          </details>
+          <input id="workspace-file" type="file" accept="application/json,.json" hidden />
+        </div>
+      </header>
+
+      <nav class="mode-tabs" aria-label="生成模式">
+        <button class="mode-tab active" data-mode="ref">
+          <span class="tab-index">01</span>
+          <span><strong>全能参考</strong><small>Ref2VA · 多素材</small></span>
+        </button>
+        <button class="mode-tab" data-mode="t2va">
+          <span class="tab-index">02</span>
+          <span><strong>文生视频</strong><small>T2VA · 只需文字</small></span>
+        </button>
+        <button class="mode-tab" data-mode="i2va">
+          <span class="tab-index">03</span>
+          <span><strong>图生视频</strong><small>I2VA · 1张首帧</small></span>
+        </button>
+        <button class="mode-tab" data-mode="fl2va">
+          <span class="tab-index">04</span>
+          <span><strong>首尾帧视频</strong><small>FL2VA · 2张图</small></span>
+        </button>
+      </nav>
+
+      <div class="quick-start" role="note">
+        <strong>最快上手</strong>
+        <span><b>1</b> 选择生成模式</span>
+        <span><b>2</b> 选择模板并应用</span>
+        <span><b>3</b> 修改分镜内容</span>
+        <span><b>4</b> 检查右侧并复制</span>
+      </div>
+
+      <div class="workspace-frame">
+        <aside class="section-nav-host" id="section-nav-host" aria-label="编辑步骤导航"></aside>
+        <main class="workspace">
+          <section class="editor-pane" aria-label="提示词表单">
+            <div class="pane-heading">
+              <div>
+                <span class="eyebrow">当前模式</span>
+                <h2 id="editor-title">全能参考</h2>
+                <p class="mode-guidance" id="mode-guidance"></p>
+              </div>
+              <div class="pane-heading-actions">
+                <button class="focus-toggle" id="focus-toggle" type="button">完整设置</button>
+                <span class="mode-badge" id="mode-badge">Ref2VA</span>
+              </div>
+            </div>
+            <div class="task-preset-toolbar" id="task-preset-toolbar"></div>
+            <div id="editor-root"></div>
+          </section>
+
+          <aside class="preview-pane" aria-label="提示词预览">
+            <div class="preview-header">
+              <div>
+                <span class="eyebrow">官方结构 · 实时输出</span>
+                <h2>可复制提示词</h2>
+                <p class="output-format" id="output-format"></p>
+              </div>
+              <div class="preview-actions">
+                <button class="icon-button" id="copy-output" title="复制提示词">复制</button>
+                <button class="icon-button primary" id="download-output" title="下载TXT">下载 TXT</button>
+              </div>
+            </div>
+            <div class="validation" id="validation"></div>
+            <pre id="prompt-output" tabindex="0"></pre>
+          </aside>
+        </main>
+      </div>
+    </div>
+
+    <aside class="help-popover" id="help-popover" role="dialog" aria-modal="false" aria-labelledby="help-title" hidden>
+      <div class="help-popover-head">
+        <div>
+          <span class="eyebrow">参数说明</span>
+          <h3 id="help-title"></h3>
+        </div>
+        <button class="help-close" id="help-close" type="button" aria-label="关闭参数说明">×</button>
+      </div>
+      <div class="help-popover-body" id="help-body"></div>
+      <p class="help-popover-hint">悬停快速查看 · 点击固定 · Esc 关闭</p>
+    </aside>
+
+    <div class="toast" id="toast" role="status"></div>
+    <script src="app.js"></script>
+  </body>
+</html>
