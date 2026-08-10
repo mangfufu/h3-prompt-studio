@@ -3,7 +3,7 @@
 
   const STORAGE_KEY = "minimax-h3-prompts-studio-v1";
   const LEGACY_STORAGE_KEY = "h3-prompt-studio-v1";
-  const APP_VERSION = "1.0.0";
+  const APP_VERSION = "1.2.0";
   const SCHEMA_VERSION = 2;
   const MODE_META = {
     ref: {
@@ -87,6 +87,83 @@
     { label: "三维电影", values: ["3D CG", "cinematic"] },
     { label: "水彩胶片", values: ["watercolor", "vintage film"] },
   ];
+  const SHOT_LANGUAGE_GROUPS = [
+    {
+      key: "shot-size",
+      title: "景别",
+      note: "决定画面看多近",
+      items: [
+        { label: "大远景", note: "Extreme wide", token: "An extreme wide shot establishes " },
+        { label: "远景", note: "Wide", token: "A wide shot frames " },
+        { label: "中远景", note: "Medium wide", token: "A medium-wide shot frames " },
+        { label: "中景", note: "Medium", token: "A medium shot frames " },
+        { label: "中近景", note: "Medium close-up", token: "A medium close-up frames " },
+        { label: "近景", note: "Close-up", token: "A close-up frames " },
+        { label: "大特写", note: "Extreme close-up", token: "An extreme close-up isolates " },
+        { label: "局部特写", note: "Detail shot", token: "A detail shot isolates " },
+      ],
+    },
+    {
+      key: "angle",
+      title: "视角",
+      note: "决定摄影机从哪里看",
+      items: [
+        { label: "平视", note: "Eye level", token: "The camera holds an eye-level view. " },
+        { label: "低角度", note: "Low angle", token: "The camera adopts a low-angle view. " },
+        { label: "高角度", note: "High angle", token: "The camera adopts a high-angle view. " },
+        { label: "正俯视", note: "Overhead", token: "An overhead view looks straight down at " },
+        { label: "贴地仰视", note: "Ground level", token: "A ground-level view looks upward at " },
+        { label: "过肩视角", note: "Over shoulder", token: "An over-the-shoulder view frames " },
+        { label: "主观视角", note: "POV", token: "A point-of-view shot shows " },
+        { label: "倾斜视角", note: "Dutch angle", token: "The camera uses a Dutch angle to frame " },
+        { label: "背后视角", note: "Rear view", token: "A rear view frames " },
+        { label: "侧面视角", note: "Side view", token: "A side view frames " },
+      ],
+    },
+    {
+      key: "composition",
+      title: "构图",
+      note: "决定主体如何排在画面里",
+      items: [
+        { label: "居中构图", note: "Centered", token: "The subject is centered in the frame. " },
+        { label: "三分构图", note: "Rule of thirds", token: "The subject is placed along the rule-of-thirds grid. " },
+        { label: "对称构图", note: "Symmetrical", token: "The composition is strictly symmetrical. " },
+        { label: "引导线", note: "Leading lines", token: "Leading lines direct attention toward the subject. " },
+        { label: "框中框", note: "Frame within frame", token: "A frame-within-a-frame composition encloses the subject. " },
+        { label: "前中后景", note: "Layered depth", token: "Foreground, midground, and background elements create layered depth. " },
+        { label: "负空间", note: "Negative space", token: "Generous negative space surrounds the subject. " },
+        { label: "浅景深", note: "Shallow depth", token: "A shallow depth of field isolates the subject from the background. " },
+        { label: "深焦", note: "Deep focus", token: "Deep focus keeps the foreground and background clearly visible. " },
+        { label: "双人构图", note: "Two-shot", token: "A balanced two-shot keeps both subjects visible in the frame. " },
+      ],
+    },
+    {
+      key: "camera-motion",
+      title: "运镜",
+      note: "决定摄影机如何运动",
+      items: [
+        { label: "固定机位", note: "Static", token: "The camera holds a static shot. " },
+        { label: "缓慢推近", note: "Push in", token: "The camera pushes in with small amplitude at slow speed. " },
+        { label: "缓慢拉远", note: "Pull out", token: "The camera pulls out with small amplitude at slow speed. " },
+        { label: "变焦放大", note: "Zoom in", token: "The camera slowly zooms in. " },
+        { label: "变焦缩小", note: "Zoom out", token: "The camera slowly zooms out. " },
+        { label: "向左摇摄", note: "Pan left", token: "The camera slowly pans left. " },
+        { label: "向右摇摄", note: "Pan right", token: "The camera slowly pans right. " },
+        { label: "向左横移", note: "Truck left", token: "The camera slowly trucks left. " },
+        { label: "向右横移", note: "Truck right", token: "The camera slowly trucks right. " },
+        { label: "向上摇镜", note: "Tilt up", token: "The camera slowly tilts upward. " },
+        { label: "向下摇镜", note: "Tilt down", token: "The camera slowly tilts downward. " },
+        { label: "机位升高", note: "Pedestal up", token: "The camera slowly rises vertically. " },
+        { label: "机位降低", note: "Pedestal down", token: "The camera slowly descends vertically. " },
+        { label: "环绕主体", note: "Arc", token: "The camera slowly arcs around the subject. " },
+        { label: "跟随运动", note: "Tracking", token: "The camera smoothly tracks alongside the moving subject. " },
+        { label: "轻微手持", note: "Slight shake", token: "The camera has subtle natural handheld movement. " },
+        { label: "强烈晃动", note: "Strong shake", token: "The camera shakes strongly with the action. " },
+        { label: "顺时针旋转", note: "Roll clockwise", token: "The camera slowly rolls clockwise. " },
+        { label: "逆时针旋转", note: "Roll counterclockwise", token: "The camera slowly rolls counterclockwise. " },
+      ],
+    },
+  ];
   const BUILT_IN_PRESETS = [
     { id: "ref-general", mode: "ref", group: "通用", title: "通用参考生成", description: "Picture 1 定义 Subject 1；自动建立完整六字段，可直接改 Shot。", factory: generalRefPreset },
     { id: "video-character-replacement", mode: "ref", group: "特别", title: "原视频角色替换", description: "用 Picture 1 的角色替换 Video 1 原角色，保留原动作、机位、剪辑、时序、环境和灯光。", factory: videoCharacterReplacementPreset },
@@ -131,9 +208,9 @@
     subjectAppears: {
       title: "出现镜头编号",
       purpose: "声明该 Subject 在哪些目标镜头中出现，供 retention_analysis 使用。",
-      usage: "用逗号或空格填写镜头号，例如 1, 2, 4。无需输入 Shot 单词或方括号。",
+      usage: "用逗号或空格填写镜头号，例如 1, 2, 4。也可以点击 Subject 区域顶部的“按Shot同步”，根据分镜正文中的 Subject 标签自动填写。",
       output: "自动转换为“appears in [Shot 1], [Shot 2]”格式。",
-      caution: "这里只做保留关系登记；Shot 正文仍需在实际出现的位置写入 <Subject N>。",
+      caution: "这里只做保留关系登记；Shot 正文仍需在实际出现的位置写入 <Subject N>。登记镜头与正文引用不一致时，校验器会提示。",
     },
     subjectRelation: {
       title: "保留方式",
@@ -190,6 +267,20 @@
       usage: "按构图与景别、主体和环境、动作与状态变化、摄影机运动、同步物理声音的顺序写。Ref2VA 在内容实际出现处插入对应标签。",
       output: "Ref2VA 写入 detailed_description；T2VA/I2VA/FL2VA 写入 integrated_multimodal_description。文本原样保留。",
       caution: "说话者使用稳定的 (S1) 编号，台词写成 <d>[Chinese] 原文</d>；Shot 2 以后正文通常从切镜动作继续。",
+    },
+    shotLanguage: {
+      title: "镜头语言库",
+      purpose: "提供可直接插入 Shot 正文的标准英文景别、视角、构图和摄影机运动句式。",
+      usage: "先把光标放到镜头描述中希望插入的位置，再展开工具箱并点击词条。带未完成宾语的句式会把光标留在末尾，继续填写主体即可。",
+      output: "所选英文句式会原样插入当前 Shot，不会改变时间戳、Subject 标签或其他字段。",
+      caution: "每个 Shot 只选真正需要的镜头语言；不要同时堆叠互相矛盾的景别、视角或运镜。推拉、摇移等运动通常补充合理速度和幅度即可。",
+    },
+    speakerIds: {
+      title: "Speaker 与台词",
+      purpose: "把实际发声者绑定到全局 Speaker 编号，并生成带语言标签的台词格式。",
+      usage: "Ref2VA 先选择发言的 Subject，再选择 S1、S2 等编号和语言，点击“插入台词”。第一个实际发声者是 S1，第二个首次发声者是 S2。",
+      output: "Ref2VA 插入“<Subject N> (Sx) says, <d>[Language] </d>”；其他模式插入“(Sx) says, <d>[Language] </d>”，光标停在台词内容位置。",
+      caution: "Speaker 编号以整条目标视频为范围，不会在每个 Shot 重置；同一发声者跨 Shot 必须沿用原编号。正确写法是圆括号 (S1)，不是 <S1>。每段独立生成的视频重新编号。",
     },
     soundscape: {
       title: "overall_soundscape",
@@ -306,6 +397,11 @@
           label: "Audio",
           text: "放在声音实际生效的 Shot 或声音阶段。说话人物同时保留 Subject 标签和稳定的说话者编号 (Sx)，台词原文放进 <d>。",
           example: "<Subject 1> (S1) speaks with the voice timbre referenced from <Audio 1>: <d>[Chinese] 你到底在隐瞒什么？</d>",
+        },
+        {
+          label: "Speaker (Sx)",
+          text: "S1、S2 按整条目标视频中首次实际发声的顺序分配，不按 Shot 重新开始。同一人物换镜头后继续使用原编号。Ref2VA 中人物发言写成 <Subject N> (Sx)。",
+          example: "[Shot 1] <Subject 2> (S1) says... [Shot 3] <Subject 2> (S1) replies...",
         },
         {
           label: "I2VA",
@@ -508,8 +604,8 @@
   function dialogueT2VAPreset(duration = "8.00") {
     return basePreset(duration, {
       shots: [
-        { id: uid(), start: "", content: "A close two-shot frames two adults seated across a small table. (S1) holds eye contact with (S2) and says, <d>[Chinese] 你迟到了。</d> (S2) does not answer." },
-        { id: uid(), start: presetStart(duration, 0.55), content: "the camera cuts to a close reaction shot of (S2), who glances at the empty chair beside (S1) and says, <d>[Chinese] 我不是来见你的。</d>" },
+        { id: uid(), start: "", content: "A close two-shot frames two adults seated across a small table. The first adult with a restrained voice (S1) holds eye contact with the silent second adult and says, <d>[Chinese] 你迟到了。</d> The second adult does not answer." },
+        { id: uid(), start: presetStart(duration, 0.55), content: "the camera cuts to a close reaction shot of the second adult with a quiet, firm voice (S2), who glances at the empty chair beside (S1) and says, <d>[Chinese] 我不是来见你的。</d>" },
       ],
       soundscape: "Quiet indoor room tone, subtle clothing movement, natural breathing, and clearly recorded synchronized dialogue.",
     });
@@ -840,6 +936,72 @@
   }
 
   let store = loadStore();
+  const HISTORY_LIMIT = 80;
+  const historyState = {
+    undo: [],
+    redo: [],
+    lastGroup: "",
+    lastRecordedAt: 0,
+    restoring: false,
+  };
+
+  function storeSnapshot() {
+    return JSON.stringify(store);
+  }
+
+  function updateHistoryControls() {
+    const undoButton = $("#undo-action");
+    const redoButton = $("#redo-action");
+    if (undoButton) undoButton.disabled = historyState.undo.length === 0;
+    if (redoButton) redoButton.disabled = historyState.redo.length === 0;
+  }
+
+  function recordHistory(group = "edit", coalesce = false) {
+    if (historyState.restoring) return;
+    const snapshot = storeSnapshot();
+    const now = Date.now();
+    const continuesGroup = coalesce
+      && historyState.lastGroup === group
+      && now - historyState.lastRecordedAt < 1200;
+    if (!continuesGroup && historyState.undo.at(-1) !== snapshot) {
+      historyState.undo.push(snapshot);
+      if (historyState.undo.length > HISTORY_LIMIT) historyState.undo.shift();
+    }
+    historyState.redo = [];
+    historyState.lastGroup = coalesce ? group : "";
+    historyState.lastRecordedAt = now;
+    updateHistoryControls();
+  }
+
+  function restoreHistorySnapshot(snapshot) {
+    historyState.restoring = true;
+    try {
+      store = normalizeStore(JSON.parse(snapshot), true);
+      saveStore();
+      renderEditor(true);
+    } finally {
+      historyState.restoring = false;
+      historyState.lastGroup = "";
+      historyState.lastRecordedAt = 0;
+      updateHistoryControls();
+    }
+  }
+
+  function undoEdit() {
+    const snapshot = historyState.undo.pop();
+    if (!snapshot) return;
+    historyState.redo.push(storeSnapshot());
+    restoreHistorySnapshot(snapshot);
+    showToast("已撤回上一步");
+  }
+
+  function redoEdit() {
+    const snapshot = historyState.redo.pop();
+    if (!snapshot) return;
+    historyState.undo.push(storeSnapshot());
+    restoreHistorySnapshot(snapshot);
+    showToast("已重做上一步");
+  }
 
   function cloneModeState(modeState) {
     const cloned = JSON.parse(JSON.stringify(modeState));
@@ -1260,7 +1422,8 @@
     return section(
       "角色、场景与物体（Subject）",
       modeState.subjects.length,
-      `<button class="add-button" data-action="add-subject">添加Subject</button>`,
+      `<button class="mini-button sync-button" data-action="sync-subject-appearances" type="button">按Shot同步</button>
+       <button class="add-button" data-action="add-subject" type="button">添加Subject</button>`,
       "一张卡片同时管理定义和保留规则，输出时会自动拆入 subject_definitions 与 retention_analysis。",
       cards,
       "subjects",
@@ -1364,19 +1527,63 @@
     return "A close shot frames ... The subject ... while the camera ...";
   }
 
-  function renderPhraseTools(shot, index) {
+  function renderDialogueBuilder(shot, modeState, mode) {
+    const subjectOptions = mode === "ref"
+      ? `${modeState.subjects.map((_, subjectIndex) => `<option value="&lt;Subject ${subjectIndex + 1}&gt;">Subject ${subjectIndex + 1}</option>`).join("")}
+         <option value="">旁白／其他声音</option>`
+      : "";
+    const speakerCount = Math.max(4, mode === "ref" ? modeState.subjects.length : 0);
+    const speakerOptions = Array.from({ length: speakerCount }, (_, speakerIndex) => `<option value="S${speakerIndex + 1}">S${speakerIndex + 1}</option>`).join("");
+    const languageOptions = ["Chinese", "English", "Japanese", "Korean"]
+      .map((language) => `<option value="${language}">${language}</option>`)
+      .join("");
+    return `<div class="dialogue-builder" data-shot-id="${esc(shot.id)}">
+      <div class="dialogue-builder-title">
+        <strong>插入台词</strong>
+        <span>S编号按整条视频首次发声顺序分配，跨Shot不重置</span>
+        ${helpTriggerMarkup("speakerIds", "dialogue-help")}
+      </div>
+      <div class="dialogue-builder-controls">
+        ${mode === "ref" ? `<label><span>发言主体</span><select data-dialogue-subject>${subjectOptions}</select></label>` : ""}
+        <label><span>全局编号</span><select data-dialogue-speaker>${speakerOptions}</select></label>
+        <label><span>语言</span><select data-dialogue-language>${languageOptions}</select></label>
+        <button class="dialogue-insert-button" type="button" data-action="insert-dialogue" data-id="${esc(shot.id)}">插入并填写</button>
+      </div>
+    </div>`;
+  }
+
+  function renderShotLanguageLibrary(shot) {
+    const groups = SHOT_LANGUAGE_GROUPS.map((group) => `
+      <section class="shot-language-group" data-shot-language-group="${esc(group.key)}">
+        <div class="shot-language-group-title">
+          <strong>${esc(group.title)}</strong>
+          <span>${esc(group.note)}</span>
+        </div>
+        <div class="shot-language-grid">
+          ${group.items.map((item) => `<button class="shot-language-button" type="button" title="${esc(item.token)}" data-action="insert-token" data-collection="shots" data-id="${esc(shot.id)}" data-key="content" data-token="${esc(item.token)}" data-cursor-back="0"><strong>${esc(item.label)}</strong><small>${esc(item.note)}</small></button>`).join("")}
+        </div>
+      </section>`).join("");
+    return `<details class="shot-language-library">
+      <summary>
+        <span class="shot-language-summary-copy"><strong>镜头语言库</strong><small>景别 · 视角 · 构图 · 运镜</small></span>
+        ${helpTriggerMarkup("shotLanguage", "shot-language-help")}
+      </summary>
+      <div class="shot-language-content">${groups}</div>
+    </details>`;
+  }
+
+  function renderPhraseTools(shot, index, modeState, mode) {
     const phrases = [
       index === 0
         ? ["A close shot frames ", "近景开场", 0]
         : ["the camera cuts to a close-up of ", "切到近景", 0],
       ["The camera pushes in with small amplitude at slow speed.", "缓慢推近", 0],
       ["The camera holds a static shot.", "固定机位", 0],
-      ["(S1) says: <d>[Chinese] </d>", "中文台词格式", 4],
     ];
     return `<div class="phrase-tools">
       <span>规范句</span>
       <div>${phrases.map(([text, label, cursorBack]) => `<button class="phrase-button" type="button" data-action="insert-token" data-collection="shots" data-id="${esc(shot.id)}" data-key="content" data-token="${esc(text)}" data-cursor-back="${cursorBack}">${esc(label)}</button>`).join("")}</div>
-    </div>`;
+    </div>${renderShotLanguageLibrary(shot)}${renderDialogueBuilder(shot, modeState, mode)}`;
   }
 
   function renderShots(modeState, mode) {
@@ -1405,7 +1612,7 @@
             <span>英文镜头描述（中文仅放在台词标签或画面文字中）</span>
             <textarea data-entity="shots" data-id="${shot.id}" data-key="content" placeholder="${esc(shotPlaceholder(mode, index))}">${esc(shot.content)}</textarea>
           </label>
-          <div class="field full">${renderPhraseTools(shot, index)}</div>
+          <div class="field full">${renderPhraseTools(shot, index, modeState, mode)}</div>
           <div class="field full">
             ${renderTokenTools(tokens, "shots", shot.id, "content")}
           </div>
@@ -1666,7 +1873,41 @@
     }
   }
 
-  function checkDialogueSyntax(content, shotNumber, errors, warnings) {
+  function pushUnique(list, message) {
+    if (!list.includes(message)) list.push(message);
+  }
+
+  function parseAppearNumbers(raw) {
+    return String(raw || "")
+      .split(/[,，\s]+/)
+      .map(Number)
+      .filter((number, index, list) => Number.isInteger(number) && number > 0 && list.indexOf(number) === index);
+  }
+
+  function checkReferenceLabelFormatting(value, errors) {
+    const text = String(value || "");
+    [...text.matchAll(/<(Subject|Picture|Video|Audio)\s*(\d+)>/gi)].forEach((match) => {
+      const type = `${match[1].charAt(0).toUpperCase()}${match[1].slice(1).toLowerCase()}`;
+      const normalized = `<${type} ${Number(match[2])}>`;
+      if (match[0] !== normalized) pushUnique(errors, `引用标签${match[0]}格式错误，应写为${normalized}`);
+    });
+    [...text.matchAll(/<S\d+>/gi)].forEach((match) => {
+      pushUnique(errors, `说话者${match[0]}格式错误，应使用圆括号${match[0].replace("<", "(").replace(">", ")")}`);
+    });
+  }
+
+  function estimateDialogueSeconds(content) {
+    return [...String(content || "").matchAll(/<d>([\s\S]*?)<\/d>/gi)].reduce((total, block) => {
+      const spoken = block[1].trim().replace(/^\[[A-Za-z][A-Za-z -]*\]\s*/, "");
+      const cjkCount = (spoken.match(/[\u3400-\u9fff\uf900-\ufaff]/g) || []).length;
+      const words = spoken
+        .replace(/[\u3400-\u9fff\uf900-\ufaff]/g, " ")
+        .match(/[A-Za-z0-9]+(?:['’-][A-Za-z0-9]+)*/g) || [];
+      return total + cjkCount / 4 + words.length / 2.7;
+    }, 0);
+  }
+
+  function checkDialogueSyntax(content, shotNumber, mode, errors, warnings, speakerEvents) {
     const openCount = (content.match(/<d>/gi) || []).length;
     const closeCount = (content.match(/<\/d>/gi) || []).length;
     if (openCount !== closeCount) errors.push(`Shot ${shotNumber}的<d>台词标签没有成对闭合`);
@@ -1675,17 +1916,31 @@
       if (!/^\[[A-Za-z][A-Za-z -]*\]\s+\S/.test(block[1].trim())) {
         errors.push(`Shot ${shotNumber}的台词必须写成<d>[Language] 原文</d>`);
       }
-      const prefix = content.slice(Math.max(0, block.index - 140), block.index);
-      if (!/\(S\d+(?:,S\d+)*\)/.test(prefix)) {
+      const prefix = content.slice(Math.max(0, block.index - 220), block.index);
+      const speakerMatches = [...prefix.matchAll(/\((S\d+(?:,S\d+)*)\)/gi)];
+      const speakerMatch = speakerMatches.at(-1);
+      if (!speakerMatch) {
         warnings.push(`Shot ${shotNumber}的台词前缺少稳定说话者编号，例如(S1)`);
+        return;
       }
+      const speakerLabel = speakerMatch[1].toUpperCase();
+      const ids = speakerLabel.split(",").map((id) => Number(id.slice(1)));
+      const pairMatches = [...prefix.matchAll(/<Subject\s+(\d+)>\s*\((S\d+(?:,S\d+)*)\)/gi)];
+      const pair = pairMatches.reverse().find((item) => item[2].toUpperCase() === speakerLabel);
+      const subjectNumber = pair ? Number(pair[1]) : null;
+      if (mode === "ref" && !subjectNumber) {
+        pushUnique(warnings, `Shot ${shotNumber}的台词未绑定Subject；已定义人物发言时建议写成<Subject N> (${speakerLabel})`);
+      }
+      speakerEvents.push({ shotNumber, ids, subjectNumber });
     });
   }
 
   function validate(mode, modeState, output) {
     const errors = [];
     const warnings = [];
+    const speakerEvents = [];
     const duration = Number(modeState.duration);
+    checkReferenceLabelFormatting(output, errors);
     if (!Number.isFinite(duration) || duration <= 0) errors.push("总时长无效");
     if (!stylePhrase(modeState)) warnings.push("尚未设置画面风格");
     checkEnglishField(modeState.customStyle, "自定义风格", warnings);
@@ -1698,8 +1953,22 @@
         if (!subject.retention.trim()) warnings.push(`Subject ${index + 1}缺少保留描述`);
         checkEnglishField(subject.definition, `Subject ${index + 1}定义`, warnings);
         checkEnglishField(subject.retention, `Subject ${index + 1}保留描述`, warnings);
-        const appears = String(subject.appears || "").split(/[,，\s]+/).map(Number).filter(Number.isInteger);
-        if (appears.some((shot) => shot < 1 || shot > modeState.shots.length)) errors.push(`Subject ${index + 1}的出现镜头编号超出范围`);
+        const rawAppears = String(subject.appears || "").split(/[,，\s]+/).map(Number).filter(Number.isInteger);
+        const appears = parseAppearNumbers(subject.appears);
+        if (!appears.length) warnings.push(`Subject ${index + 1}尚未填写出现镜头`);
+        if (rawAppears.some((shot) => shot < 1 || shot > modeState.shots.length)) errors.push(`Subject ${index + 1}的出现镜头编号超出范围`);
+        const label = `<Subject ${index + 1}>`;
+        const actualShots = modeState.shots
+          .map((shot, shotIndex) => String(shot.content || "").includes(label) ? shotIndex + 1 : null)
+          .filter(Boolean);
+        if (!actualShots.length) {
+          warnings.push(`${label}没有在任何Shot正文中引用`);
+        } else {
+          const missing = actualShots.filter((shot) => !appears.includes(shot));
+          const extra = appears.filter((shot) => !actualShots.includes(shot));
+          if (missing.length) warnings.push(`${label}在Shot ${missing.join(", ")}正文出现，但retention_analysis尚未登记`);
+          if (extra.length) warnings.push(`${label}登记了Shot ${extra.join(", ")}，但对应Shot正文没有该标签`);
+        }
       });
       modeState.summaries.forEach((item, index) => checkEnglishField(item.content, `Summary ${index + 1}`, warnings));
       refLabels(modeState).forEach((ref) => {
@@ -1721,6 +1990,11 @@
       if (modeState.taskTypes.includes("video editing") && !referenceTypes.has("Video")) errors.push("video editing任务需要至少一个Video标签");
       if (modeState.taskTypes.includes("video continuation") && !referenceTypes.has("Video")) errors.push("video continuation任务需要至少一个Video标签");
       if ((modeState.taskTypes.includes("audio reuse") || modeState.taskTypes.includes("audio reference")) && !referenceTypes.has("Audio")) errors.push("音频任务需要至少一个Audio标签");
+      const authoredText = [
+        ...modeState.summaries.map((item) => item.content),
+        ...modeState.shots.map((shot) => shot.content),
+      ].join(" ");
+      if (/\bchar[_-]?\d+\b/i.test(authoredText)) warnings.push("检测到char1、char2等临时别名；建议直接使用<Subject N>保持引用稳定");
     } else if (/<(?:Subject|Video|Audio) \d+>/.test(output) || (mode === "t2va" && /<Picture \d+>/.test(output))) {
       errors.push(`${MODE_META[mode].badge}正文中出现了当前模式不支持的引用标签`);
     }
@@ -1729,7 +2003,7 @@
       const content = String(shot.content || "");
       if (!content.trim()) warnings.push(`Shot ${index + 1}内容为空`);
       checkEnglishField(content, `Shot ${index + 1}`, warnings);
-      checkDialogueSyntax(content, index + 1, errors, warnings);
+      checkDialogueSyntax(content, index + 1, mode, errors, warnings, speakerEvents);
       if (/\[Shot\s+\d+\]/i.test(content) || /\bAt\s+\d{2}:\d{2}\.\d{3}\b/i.test(content)) {
         warnings.push(`Shot ${index + 1}内容中重复手写了编号或At时间，工具会自动添加`);
       }
@@ -1746,9 +2020,42 @@
         }
       }
     });
+    const firstSpeakerOrder = [];
+    const subjectToSpeaker = new Map();
+    const speakerToSubject = new Map();
+    speakerEvents.forEach((event) => {
+      event.ids.forEach((id) => {
+        if (!firstSpeakerOrder.includes(id)) firstSpeakerOrder.push(id);
+      });
+      if (!event.subjectNumber || event.ids.length !== 1) return;
+      const speakerId = event.ids[0];
+      const previousSpeaker = subjectToSpeaker.get(event.subjectNumber);
+      const previousSubject = speakerToSubject.get(speakerId);
+      if (previousSpeaker && previousSpeaker !== speakerId) {
+        pushUnique(errors, `<Subject ${event.subjectNumber}>跨Shot使用了不同Speaker编号：S${previousSpeaker}与S${speakerId}`);
+      }
+      if (previousSubject && previousSubject !== event.subjectNumber) {
+        pushUnique(errors, `(S${speakerId})被绑定到多个Subject：<Subject ${previousSubject}>与<Subject ${event.subjectNumber}>`);
+      }
+      subjectToSpeaker.set(event.subjectNumber, speakerId);
+      speakerToSubject.set(speakerId, event.subjectNumber);
+    });
+    if (firstSpeakerOrder.some((id, index) => id !== index + 1)) {
+      warnings.push(`Speaker应按整条视频首次发声顺序从(S1)连续分配；当前首次出现顺序为${firstSpeakerOrder.map((id) => `(S${id})`).join("、")}`);
+    }
+    modeState.shots.forEach((shot, index) => {
+      const start = index === 0 ? 0 : parseTime(shot.start);
+      const end = index === modeState.shots.length - 1 ? duration : parseTime(modeState.shots[index + 1].start);
+      const dialogueSeconds = estimateDialogueSeconds(shot.content);
+      if (!Number.isFinite(start) || !Number.isFinite(end) || !dialogueSeconds) return;
+      const availableSeconds = end - start;
+      if (availableSeconds > 0 && dialogueSeconds + 1 > availableSeconds) {
+        warnings.push(`Shot ${index + 1}约有${availableSeconds.toFixed(2)}秒，但台词已需约${dialogueSeconds.toFixed(2)}秒，留给表演动作的时间可能不足`);
+      }
+    });
     if (!modeState.soundscape.trim()) warnings.push("overall_soundscape为空");
     checkEnglishField(modeState.soundscape, "overall_soundscape", warnings);
-    if (!modeState.noMusic && !modeState.music.trim()) warnings.push("配乐已开启但内容为空");
+    if (!modeState.noMusic && !modeState.music.trim()) errors.push("配乐已开启但non_diegetic_music为空；没有配乐请打开“无非叙事配乐”");
     if (!modeState.noMusic) checkEnglishField(modeState.music, "non_diegetic_music", warnings);
     if (mode === "fl2va" && (!Number(modeState.lastShot) || Number(modeState.lastShot) > modeState.shots.length)) errors.push("尾帧镜头无效");
     if (mode === "i2va" && !String(modeState.shots[0]?.content || "").includes("<Picture 1>")) warnings.push("I2VA的Shot 1应明确从<Picture 1>承接画面");
@@ -1810,6 +2117,20 @@
       modeState.shots.push({ id: uid(), start: "", content: "" });
       if (store.activeMode === "fl2va") modeState.lastShot = String(modeState.shots.length);
     }
+  }
+
+  function syncSubjectAppearances(modeState) {
+    let synced = 0;
+    modeState.subjects.forEach((subject, subjectIndex) => {
+      const label = `<Subject ${subjectIndex + 1}>`;
+      const shots = modeState.shots
+        .map((shot, shotIndex) => String(shot.content || "").includes(label) ? shotIndex + 1 : null)
+        .filter(Boolean);
+      if (!shots.length) return;
+      subject.appears = shots.join(", ");
+      synced += 1;
+    });
+    return synced;
   }
 
   function ensurePictureReferences(modeState, targetCount) {
@@ -1922,6 +2243,7 @@
     const selected = builtIn || custom;
     if (!selected) return;
     if (!confirm(`应用“${selected.title}”会替换当前${MODE_META[mode].title}内容，是否继续？`)) return;
+    recordHistory("apply-preset");
     store.modes[mode] = builtIn
       ? builtIn.factory(store.modes[mode].duration)
       : cloneModeState(custom.state);
@@ -1950,6 +2272,7 @@
     }
     const existing = store.customPresets.find((preset) => preset.mode === mode && preset.title === title);
     if (existing && !confirm(`“${title}”已经存在，是否用当前内容覆盖？`)) return;
+    recordHistory("save-custom-preset");
     const preset = existing || { id: `custom-${uid()}`, mode, title };
     preset.title = title;
     preset.state = cloneModeState(store.modes[mode]);
@@ -1967,6 +2290,7 @@
     const preset = store.customPresets.find((item) => item.id === presetId && item.mode === store.activeMode);
     if (!preset) return;
     if (!confirm(`确定删除自定义预设“${preset.title}”吗？`)) return;
+    recordHistory("delete-custom-preset");
     store.customPresets = store.customPresets.filter((item) => item.id !== preset.id);
     saveStore();
     renderTaskPresetToolbar(store.activeMode);
@@ -1992,6 +2316,7 @@
     const insertion = `${leftSpace}${token}${rightSpace}`;
     const nextValue = `${before}${insertion}${after}`;
 
+    recordHistory(`insert:${collection}:${id}:${key}`);
     item[key] = nextValue;
     textarea.value = nextValue;
     const cursorBack = Math.max(0, Number(button.dataset.cursorBack) || 0);
@@ -1999,6 +2324,19 @@
     textarea.focus();
     textarea.setSelectionRange(caret, caret);
     updateOutput();
+  }
+
+  function insertDialogue(button, modeState) {
+    const builder = button.closest(".dialogue-builder");
+    if (!builder) return;
+    const subject = builder.querySelector("[data-dialogue-subject]")?.value || "";
+    const speaker = builder.querySelector("[data-dialogue-speaker]")?.value || "S1";
+    const language = builder.querySelector("[data-dialogue-language]")?.value || "Chinese";
+    button.dataset.collection = "shots";
+    button.dataset.key = "content";
+    button.dataset.token = `${subject ? `${subject} ` : ""}(${speaker}) says, <d>[${language}] </d>`;
+    button.dataset.cursorBack = "4";
+    insertToken(button, modeState);
   }
 
   sectionNavHost.addEventListener("click", (event) => {
@@ -2043,6 +2381,7 @@
     const modeState = store.modes[store.activeMode];
     const action = button.dataset.action;
     if (action === "apply-subject-template") {
+      recordHistory("apply-subject-template");
       if (applySubjectTemplate(modeState, button.dataset.id, button.dataset.template)) {
         renderEditor();
         showToast("已填写Subject定义与保留规则");
@@ -2050,6 +2389,7 @@
       return;
     }
     if (action === "apply-reference-template") {
+      recordHistory("apply-reference-template");
       if (applyReferenceTemplate(modeState, button.dataset.id, button.dataset.template)) {
         renderEditor();
         showToast("已填写参考资产定义与保留规则");
@@ -2060,17 +2400,32 @@
       insertToken(button, modeState);
       return;
     }
+    if (action === "insert-dialogue") {
+      insertDialogue(button, modeState);
+      return;
+    }
     if (action === "apply-style-mix") {
+      recordHistory("apply-style-mix");
       modeState.styles = button.dataset.styleValues.split("|").filter(Boolean);
       renderEditor();
       editorRoot.querySelector("#section-style")?.scrollIntoView({ block: "start" });
       return;
     }
+    if (action === "sync-subject-appearances") {
+      recordHistory("sync-subject-appearances");
+      const synced = syncSubjectAppearances(modeState);
+      renderEditor();
+      showToast(synced ? `已同步${synced}个Subject的出现镜头` : "Shot正文中还没有Subject引用");
+      return;
+    }
     if (action === "add-ref") {
+      recordHistory("add-reference");
       modeState.references.push(createReference(button.dataset.type));
     } else if (action === "delete-ref") {
+      recordHistory("delete-reference");
       modeState.references = modeState.references.filter((item) => item.id !== button.dataset.id);
     } else if (["add-subject", "add-summary", "add-shot"].includes(action)) {
+      recordHistory(action);
       addEntity(action, modeState);
     } else if (action === "delete") {
       const list = modeState[button.dataset.kind];
@@ -2078,9 +2433,11 @@
         showToast("至少保留一个Shot");
         return;
       }
+      recordHistory(`delete-${button.dataset.kind}`);
       modeState[button.dataset.kind] = list.filter((item) => item.id !== button.dataset.id);
       if (button.dataset.kind === "shots" && store.activeMode === "fl2va") modeState.lastShot = String(modeState.shots.length);
     } else if (action === "move") {
+      recordHistory(`move-${button.dataset.kind}`);
       moveEntity(modeState, button.dataset.kind, button.dataset.id, button.dataset.dir);
     }
     renderEditor();
@@ -2091,6 +2448,9 @@
     const modeState = store.modes[store.activeMode];
     if (target.dataset.taskType) {
       const type = target.dataset.taskType;
+      const alreadyChecked = modeState.taskTypes.includes(type);
+      if (alreadyChecked === target.checked) return;
+      recordHistory(`task-type:${type}`, event.type === "input");
       if (target.checked && !modeState.taskTypes.includes(type)) modeState.taskTypes.push(type);
       if (!target.checked) modeState.taskTypes = modeState.taskTypes.filter((item) => item !== type);
       updateOutput();
@@ -2098,13 +2458,20 @@
     }
     if (target.dataset.stylePreset) {
       const preset = target.dataset.stylePreset;
+      const alreadyChecked = modeState.styles.includes(preset);
+      if (alreadyChecked === target.checked) return;
+      recordHistory(`style:${preset}`, event.type === "input");
       if (target.checked && !modeState.styles.includes(preset)) modeState.styles.push(preset);
       if (!target.checked) modeState.styles = modeState.styles.filter((item) => item !== preset);
       renderEditor();
       return;
     }
     if (target.dataset.global) {
-      modeState[target.dataset.global] = target.type === "checkbox" ? target.checked : target.value;
+      const key = target.dataset.global;
+      const nextValue = target.type === "checkbox" ? target.checked : target.value;
+      if (modeState[key] === nextValue) return;
+      recordHistory(`global:${key}`, event.type === "input");
+      modeState[key] = nextValue;
       if (target.dataset.global === "noMusic") renderEditor();
       else {
         if (target.dataset.global === "customStyle") {
@@ -2121,7 +2488,10 @@
     if (target.dataset.entity) {
       const entity = findEntity(modeState, target.dataset.entity, target.dataset.id);
       if (!entity) return;
-      entity[target.dataset.key] = target.value;
+      const key = target.dataset.key;
+      if (entity[key] === target.value) return;
+      recordHistory(`entity:${target.dataset.entity}:${target.dataset.id}:${key}`, event.type === "input");
+      entity[key] = target.value;
       updateOutput();
     }
   }
@@ -2170,6 +2540,19 @@
   helpPopover.addEventListener("pointerenter", () => clearTimeout(helpHideTimer));
   helpPopover.addEventListener("pointerleave", scheduleHelpClose);
   document.addEventListener("keydown", (event) => {
+    const modifier = event.ctrlKey || event.metaKey;
+    const key = event.key.toLowerCase();
+    if (modifier && !event.altKey && key === "z") {
+      event.preventDefault();
+      if (event.shiftKey) redoEdit();
+      else undoEdit();
+      return;
+    }
+    if (modifier && !event.altKey && key === "y") {
+      event.preventDefault();
+      redoEdit();
+      return;
+    }
     if (event.key === "Escape" && !helpPopover.hidden) closeHelp();
   });
   window.addEventListener("resize", () => {
@@ -2186,7 +2569,11 @@
     });
   });
 
+  $("#undo-action").addEventListener("click", undoEdit);
+  $("#redo-action").addEventListener("click", redoEdit);
+
   $("#load-sample").addEventListener("click", () => {
+    recordHistory("load-sample");
     store.modes[store.activeMode] = sampleMode(store.activeMode);
     $("#project-menu").removeAttribute("open");
     renderEditor(true);
@@ -2195,6 +2582,7 @@
 
   $("#reset-mode").addEventListener("click", () => {
     if (!confirm(`确定清空“${MODE_META[store.activeMode].title}”当前内容吗？`)) return;
+    recordHistory("reset-mode");
     store.modes[store.activeMode] = blankMode(store.activeMode);
     store.focusMode = false;
     $("#project-menu").removeAttribute("open");
@@ -2233,6 +2621,7 @@
       const parsed = JSON.parse(await file.text());
       const imported = normalizeStore(parsed.workspace || parsed, true);
       if (!confirm("导入会替换当前四种模式内容和自定义模板，是否继续？")) return;
+      recordHistory("import-workspace");
       store = imported;
       saveStore();
       renderEditor(true);
@@ -2283,4 +2672,5 @@
   }
 
   renderEditor(true);
+  updateHistoryControls();
 })();

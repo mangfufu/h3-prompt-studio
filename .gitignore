@@ -1,5 +1,6 @@
 # Local test artifacts
 .chrome-*-profile/
+.smoke-browser-profile/
 demo-screenshot.png
 demo-mobile-screenshot.png
 *.log

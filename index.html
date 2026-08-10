@@ -21,6 +21,10 @@
         </div>
         <div class="header-actions">
           <span class="save-state" id="save-state"><i></i> 已自动保存</span>
+          <div class="history-actions" role="group" aria-label="编辑历史">
+            <button class="history-button" type="button" id="undo-action" title="撤回（Ctrl+Z）" disabled>撤回</button>
+            <button class="history-button" type="button" id="redo-action" title="重做（Ctrl+Shift+Z 或 Ctrl+Y）" disabled>重做</button>
+          </div>
           <details class="project-menu" id="project-menu">
             <summary class="button ghost">项目</summary>
             <div class="project-menu-panel">

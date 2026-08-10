@@ -14,12 +14,16 @@ MiniMax H3 Prompts Studio is a local, browser-based video prompt editor for orga
 - Adds characters, images, videos, audio, and scene references through structured forms
 - Sets full or partial preservation requirements for each subject
 - Organizes shots, timestamps, actions, camera movement, and dialogue with shot cards
+- Includes a collapsible shot-language library in every Shot for shot sizes, viewpoints, composition, and camera movement
+- Binds subjects, global speaker IDs, and language tags through a dialogue inserter
+- Synchronizes Subject appearance lists from the references used in Shot content
 - Quickly inserts subject and asset references while maintaining their numbering
 - Includes multiple prompt presets, preset mixing, and custom presets
 - Edits ambient sound and non-diegetic music separately
-- Builds the complete prompt in real time and checks references, timing, and formatting
+- Builds the complete prompt in real time and checks references, speaker conflicts, retention, dialogue timing, shot timing, and sound fields
 - Copies prompts or downloads them as TXT files
 - Imports, exports, and locally saves workspaces as JSON
+- Supports workspace-level undo and redo with `Ctrl+Z`, `Ctrl+Shift+Z`, and `Ctrl+Y`
 - Processes everything in the current browser without uploading images, videos, or prompts
 
 ## Usage

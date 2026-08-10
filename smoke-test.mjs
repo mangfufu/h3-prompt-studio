@@ -1,6 +1,19 @@
 import { writeFile } from "node:fs/promises";
 
-const tabs = await fetch("http://127.0.0.1:9223/json").then((response) => response.json());
+async function getDebugTabs() {
+  const endpoints = ["http://127.0.0.1:9223/json", "http://localhost:9223/json", "http://[::1]:9223/json"];
+  for (const endpoint of endpoints) {
+    try {
+      const response = await fetch(endpoint);
+      if (response.ok) return response.json();
+    } catch {
+      // Chrome can bind the debugging port to IPv4 or IPv6 depending on the host.
+    }
+  }
+  throw new Error("The local Chrome debugging endpoint is unavailable on port 9223.");
+}
+
+const tabs = await getDebugTabs();
 const page = tabs.find((item) => item.type === "page" && item.url.startsWith("http://127.0.0.1:4173"));
 if (!page) throw new Error("Demo page was not found in the headless browser.");
 
@@ -63,7 +76,7 @@ check("monochrome UI uses high-contrast controls without decorative gradients", 
 await evaluate(`new Promise((resolve) => setTimeout(resolve, 1900))`);
 const desktopCapture = await command("Page.captureScreenshot", { format: "png", captureBeyondViewport: false });
 await writeFile(new URL("demo-screenshot.png", import.meta.url), Buffer.from(desktopCapture.data, "base64"));
-const helpCoverage = await evaluate(`(() => { const keys = new Set([...document.querySelectorAll('.help-trigger[data-help-key]')].map((item) => item.dataset.helpKey)); const required = ['taskPreset','definitionTemplates','duration','customStyle','refPicture','refVideo','refAudio','referenceDefinition','referenceContext','referenceRelation','referenceRetention','subjectDefinition','subjectAppears','subjectRelation','subjectRetention','summaryContent','shotStartFixed','shotStart','shotPrefix','shotContent','shotReferences','soundscape','noMusic','task-reference generation','task-video editing','style-live-action','style-cinematic']; return { count: document.querySelectorAll('.help-trigger[data-help-key]').length, missing: required.filter((key) => !keys.has(key)) }; })()`);
+const helpCoverage = await evaluate(`(() => { const keys = new Set([...document.querySelectorAll('.help-trigger[data-help-key]')].map((item) => item.dataset.helpKey)); const required = ['taskPreset','definitionTemplates','duration','customStyle','refPicture','refVideo','refAudio','referenceDefinition','referenceContext','referenceRelation','referenceRetention','subjectDefinition','subjectAppears','subjectRelation','subjectRetention','summaryContent','shotStartFixed','shotStart','shotPrefix','shotContent','shotLanguage','shotReferences','speakerIds','soundscape','noMusic','task-reference generation','task-video editing','style-live-action','style-cinematic']; return { count: document.querySelectorAll('.help-trigger[data-help-key]').length, missing: required.filter((key) => !keys.has(key)) }; })()`);
 check("all major parameters expose help triggers", helpCoverage.count >= 45 && helpCoverage.missing.length === 0, JSON.stringify(helpCoverage));
 const helpLayout = await evaluate(`(() => { const workspaceBefore = document.querySelector('.workspace').getBoundingClientRect(); const trigger = document.querySelector('.field-help[data-help-key="duration"]'); trigger.dispatchEvent(new PointerEvent('pointerover', { bubbles: true })); const popover = document.querySelector('#help-popover').getBoundingClientRect(); const workspaceAfter = document.querySelector('.workspace').getBoundingClientRect(); return { title: document.querySelector('#help-title').textContent, hidden: document.querySelector('#help-popover').hidden, rows: document.querySelectorAll('#help-body section').length, inViewport: popover.left >= 0 && popover.top >= 0 && popover.right <= innerWidth && popover.bottom <= innerHeight, layoutStable: workspaceBefore.left === workspaceAfter.left && workspaceBefore.width === workspaceAfter.width }; })()`);
 check("hover help is detailed, floating, and layout-neutral", !helpLayout.hidden && helpLayout.title === '总时长（秒）' && helpLayout.rows === 4 && helpLayout.inViewport && helpLayout.layoutStable, JSON.stringify(helpLayout));
@@ -91,11 +104,82 @@ check("add Subject renumbers automatically", await evaluate(`document.querySelec
 check("Subject 3 appears in output", await evaluate(`document.querySelector('#prompt-output').textContent.includes('<Subject 3>')`));
 check("Shot reference guide is visible", await evaluate(`document.querySelector('.reference-guide')?.textContent.includes('Shot 里怎么引用')`));
 const referenceHelp = await evaluate(`(() => { const trigger = document.querySelector('.guide-help[data-help-key="shotReferences"]'); trigger.click(); const body = document.querySelector('#help-body'); return { title: document.querySelector('#help-title').textContent, pinned: document.querySelector('#help-popover').classList.contains('pinned'), sections: body.querySelectorAll('section').length, examples: body.querySelectorAll('code').length, hasSubject: body.textContent.includes('<Subject 1>'), hasPicture: body.textContent.includes('<Picture 1>'), hasVideo: body.textContent.includes('<Video 1>'), hasAudio: body.textContent.includes('<Audio 1>'), hasI2VA: body.textContent.includes('I2VA'), hasFL2VA: body.textContent.includes('FL2VA') }; })()`);
-check("Shot reference tutorial covers every official reference role", referenceHelp.title === 'Shot 引用完整用法' && referenceHelp.pinned && referenceHelp.sections === 9 && referenceHelp.examples >= 7 && referenceHelp.hasSubject && referenceHelp.hasPicture && referenceHelp.hasVideo && referenceHelp.hasAudio && referenceHelp.hasI2VA && referenceHelp.hasFL2VA, JSON.stringify(referenceHelp));
+check("Shot reference tutorial covers every official reference role", referenceHelp.title === 'Shot 引用完整用法' && referenceHelp.pinned && referenceHelp.sections === 10 && referenceHelp.examples >= 8 && referenceHelp.hasSubject && referenceHelp.hasPicture && referenceHelp.hasVideo && referenceHelp.hasAudio && referenceHelp.hasI2VA && referenceHelp.hasFL2VA, JSON.stringify(referenceHelp));
 await evaluate(`document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }))`);
 check("Ref Shot exposes quick reference buttons", await evaluate(`document.querySelectorAll('[data-action="insert-token"]').length >= 5`));
 await evaluate(`(() => { const area = document.querySelector('[data-entity="shots"][data-key="content"]'); area.focus(); area.setSelectionRange(area.value.length, area.value.length); const button = [...document.querySelectorAll('[data-action="insert-token"]')].find((item) => item.dataset.token === '<Subject 3>'); button.click(); })()`);
 check("quick reference inserts at Shot cursor", await evaluate(`document.querySelector('[data-entity="shots"][data-key="content"]').value.endsWith('<Subject 3>') && document.querySelector('#prompt-output').textContent.includes('<Subject 3>')`));
+
+const shotLanguage = await evaluate(`(() => {
+  const area = document.querySelector('[data-entity="shots"][data-key="content"]');
+  const library = area.closest('.item-card').querySelector('.shot-language-library');
+  const initiallyClosed = !library.open;
+  library.querySelector('.shot-language-help').click();
+  const helpTitle = document.querySelector('#help-title').textContent;
+  const helpDoesNotOpenLibrary = !library.open;
+  document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
+  library.open = true;
+  const before = area.value;
+  area.focus();
+  area.setSelectionRange(area.value.length, area.value.length);
+  const button = [...library.querySelectorAll('.shot-language-button')].find((item) => item.dataset.token === 'The camera slowly pans right. ');
+  button.click();
+  const after = area.value;
+  const result = {
+    initiallyClosed,
+    helpDoesNotOpenLibrary,
+    groups: library.querySelectorAll('.shot-language-group').length,
+    buttons: library.querySelectorAll('.shot-language-button').length,
+    labels: [...library.querySelectorAll('.shot-language-group-title strong')].map((item) => item.textContent),
+    inserted: after.includes('The camera slowly pans right.'),
+    promptUpdated: document.querySelector('#prompt-output').textContent.includes('The camera slowly pans right.'),
+    helpTitle,
+    before,
+    after,
+  };
+  document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
+  return result;
+})()`);
+check("each Shot has a collapsed four-part shot-language library with insertable standard English phrases", shotLanguage.initiallyClosed && shotLanguage.helpDoesNotOpenLibrary && shotLanguage.groups === 4 && shotLanguage.buttons >= 45 && shotLanguage.labels.join('|') === '景别|视角|构图|运镜' && shotLanguage.inserted && shotLanguage.promptUpdated && shotLanguage.helpTitle === '镜头语言库', JSON.stringify(shotLanguage));
+
+const historyRoundtrip = await evaluate(`(() => {
+  const before = ${JSON.stringify(shotLanguage.before)};
+  const after = ${JSON.stringify(shotLanguage.after)};
+  document.querySelector('#undo-action').click();
+  const buttonUndo = document.querySelector('[data-entity="shots"][data-key="content"]').value;
+  document.querySelector('#redo-action').click();
+  const buttonRedo = document.querySelector('[data-entity="shots"][data-key="content"]').value;
+  document.dispatchEvent(new KeyboardEvent('keydown', { key: 'z', ctrlKey: true, bubbles: true }));
+  const keyboardUndo = document.querySelector('[data-entity="shots"][data-key="content"]').value;
+  document.dispatchEvent(new KeyboardEvent('keydown', { key: 'z', ctrlKey: true, shiftKey: true, bubbles: true }));
+  const keyboardRedo = document.querySelector('[data-entity="shots"][data-key="content"]').value;
+  return { buttonUndo: buttonUndo === before, buttonRedo: buttonRedo === after, keyboardUndo: keyboardUndo === before, keyboardRedo: keyboardRedo === after, undoEnabled: !document.querySelector('#undo-action').disabled };
+})()`);
+check("workspace history supports button and keyboard undo/redo for inserted shot language", historyRoundtrip.buttonUndo && historyRoundtrip.buttonRedo && historyRoundtrip.keyboardUndo && historyRoundtrip.keyboardRedo && historyRoundtrip.undoEnabled, JSON.stringify(historyRoundtrip));
+
+const historyScope = await evaluate(`(() => {
+  let area = document.querySelector('[data-entity="shots"][data-key="content"]');
+  const beforeTyping = area.value;
+  area.value = beforeTyping + ' First';
+  area.dispatchEvent(new Event('input', { bubbles: true }));
+  area.value += ' second';
+  area.dispatchEvent(new Event('input', { bubbles: true }));
+  document.dispatchEvent(new KeyboardEvent('keydown', { key: 'z', ctrlKey: true, bubbles: true }));
+  const coalescedTypingUndo = document.querySelector('[data-entity="shots"][data-key="content"]').value === beforeTyping;
+  const shotsBefore = document.querySelectorAll('textarea[data-entity="shots"][data-key="content"]').length;
+  document.querySelector('[data-action="add-shot"]').click();
+  const shotsAfterAdd = document.querySelectorAll('textarea[data-entity="shots"][data-key="content"]').length;
+  const shotAdded = shotsAfterAdd === shotsBefore + 1;
+  document.querySelector('#undo-action').click();
+  const shotsAfterUndo = document.querySelectorAll('textarea[data-entity="shots"][data-key="content"]').length;
+  const addUndone = shotsAfterUndo === shotsBefore;
+  document.querySelector('#redo-action').click();
+  const shotsAfterRedo = document.querySelectorAll('textarea[data-entity="shots"][data-key="content"]').length;
+  const addRedone = shotsAfterRedo === shotsBefore + 1;
+  document.querySelector('#undo-action').click();
+  return { coalescedTypingUndo, shotAdded, addUndone, addRedone, shotsBefore, shotsAfterAdd, shotsAfterUndo, shotsAfterRedo };
+})()`);
+check("history coalesces continuous typing and restores structural Shot changes", historyScope.coalescedTypingUndo && historyScope.shotAdded && historyScope.addUndone && historyScope.addRedone, JSON.stringify(historyScope));
 
 const subjectTemplate = await evaluate(`(() => { const subject = [...document.querySelectorAll('[data-entity="subjects"][data-key="definition"]')].at(-1); const card = subject.closest('.item-card'); card.querySelector('[data-action="apply-subject-template"][data-template="scene"]').click(); const output = document.querySelector('#prompt-output').textContent; return { definition: [...document.querySelectorAll('[data-entity="subjects"][data-key="definition"]')].at(-1).value, picture3: [...document.querySelectorAll('.reference-chip')].some((item) => item.textContent.trim() === '<Picture 3>'), retention: output.includes('<Subject 3> (appears in [Shot 1], [Shot 2]): fully_preserved - the spatial layout') }; })()`);
 check("Subject template fills definition and retention while adding its Picture label", subjectTemplate.definition.includes('is the environment in <Picture 3>') && subjectTemplate.picture3 && subjectTemplate.retention, JSON.stringify(subjectTemplate));
@@ -132,8 +216,14 @@ const refGeneralPreset = await evaluate(`(() => { window.confirm = () => true; c
 check("Ref2VA generic preset is immediately format-valid", refGeneralPreset.sixFields && refGeneralPreset.picture && refGeneralPreset.subject && refGeneralPreset.errors === 0, JSON.stringify(refGeneralPreset));
 const normativeValidation = await evaluate(`(() => { const area = document.querySelector('[data-entity="shots"][data-key="content"]'); area.value = '[Shot 1] 近景，角色看向门口。'; area.dispatchEvent(new Event('input', { bubbles: true })); const text = document.querySelector('#validation').textContent; const result = { chinese: text.includes('含中文描述'), duplicate: text.includes('重复手写'), friendlyState: text.includes('结构可用，建议检查'), detailed: document.querySelectorAll('.validation-list li').length >= 2 }; const select = document.querySelector('#task-preset-select'); select.value = 'ref-general'; select.dispatchEvent(new Event('change', { bubbles: true })); document.querySelector('#task-preset-apply').click(); return result; })()`);
 check("formal validator explains Chinese body text and duplicate Shot prefixes", normativeValidation.chinese && normativeValidation.duplicate && normativeValidation.friendlyState && normativeValidation.detailed, JSON.stringify(normativeValidation));
-const phraseInsertion = await evaluate(`(() => { const area = document.querySelector('[data-entity="shots"][data-key="content"]'); area.focus(); area.setSelectionRange(area.value.length, area.value.length); document.querySelector('.phrase-button[data-cursor-back="4"]').click(); return { inserted: area.value.includes('(S1) says: <d>[Chinese] </d>'), caretBeforeClose: area.selectionStart === area.value.lastIndexOf('</d>'), relationReadable: document.querySelector('[data-entity="subjects"][data-key="relation"]').selectedOptions[0].textContent.includes('完整保留') }; })()`);
-check("official phrase buttons insert dialogue syntax and place the caret inside the tag", phraseInsertion.inserted && phraseInsertion.caretBeforeClose && phraseInsertion.relationReadable, JSON.stringify(phraseInsertion));
+const dialogueInsertion = await evaluate(`(() => { const area = document.querySelector('[data-entity="shots"][data-key="content"]'); area.focus(); area.setSelectionRange(area.value.length, area.value.length); const builder = area.closest('.item-card').querySelector('.dialogue-builder'); builder.querySelector('[data-dialogue-subject]').value = '<Subject 1>'; builder.querySelector('[data-dialogue-speaker]').value = 'S1'; builder.querySelector('[data-dialogue-language]').value = 'Chinese'; builder.querySelector('[data-action="insert-dialogue"]').click(); builder.querySelector('.dialogue-help').click(); return { inserted: area.value.includes('<Subject 1> (S1) says, <d>[Chinese] </d>'), caretBeforeClose: area.selectionStart === area.value.lastIndexOf('</d>'), helpTitle: document.querySelector('#help-title').textContent, helpGlobal: document.querySelector('#help-body').textContent.includes('整条目标视频'), relationReadable: document.querySelector('[data-entity="subjects"][data-key="relation"]').selectedOptions[0].textContent.includes('完整保留') }; })()`);
+check("dialogue builder binds Subject, global Speaker, and language while placing the caret inside the tag", dialogueInsertion.inserted && dialogueInsertion.caretBeforeClose && dialogueInsertion.helpTitle === 'Speaker 与台词' && dialogueInsertion.helpGlobal && dialogueInsertion.relationReadable, JSON.stringify(dialogueInsertion));
+await evaluate(`document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }))`);
+const strictValidation = await evaluate(`(() => { let area = document.querySelector('[data-entity="shots"][data-key="content"]'); area.value = 'A close shot frames <Subject1>. <S1> says, <d>你好</d>'; area.dispatchEvent(new Event('input', { bubbles: true })); const noMusic = document.querySelector('[data-global="noMusic"]'); noMusic.checked = false; noMusic.dispatchEvent(new Event('change', { bubbles: true })); const text = document.querySelector('#validation').textContent; return { malformedSubject: text.includes('<Subject1>格式错误'), angleSpeaker: text.includes('说话者<S1>格式错误'), language: text.includes('<d>[Language] 原文</d>'), emptyMusic: text.includes('non_diegetic_music为空') }; })()`);
+check("validator catches malformed reference labels, angle-bracket speakers, missing dialogue language, and empty music", strictValidation.malformedSubject && strictValidation.angleSpeaker && strictValidation.language && strictValidation.emptyMusic, JSON.stringify(strictValidation));
+await evaluate(`(() => { const select = document.querySelector('#task-preset-select'); select.value = 'ref-general'; select.dispatchEvent(new Event('change', { bubbles: true })); document.querySelector('#task-preset-apply').click(); })()`);
+const timingAndSync = await evaluate(`(() => { document.querySelector('[data-action="add-shot"]').click(); document.querySelector('[data-action="add-shot"]').click(); const starts = document.querySelectorAll('input[data-entity="shots"][data-key="start"]'); starts[0].value = '2.000'; starts[0].dispatchEvent(new Event('input', { bubbles: true })); starts[1].value = '6.000'; starts[1].dispatchEvent(new Event('input', { bubbles: true })); const areas = document.querySelectorAll('textarea[data-entity="shots"][data-key="content"]'); areas[1].value = 'the camera cuts to a close reaction shot.'; areas[1].dispatchEvent(new Event('input', { bubbles: true })); areas[2].value = 'the camera cuts to <Subject 1> (S1), who says, <d>[Chinese] 好啊，随便你。</d> After speaking, the character gets off the bed and leaves.'; areas[2].dispatchEvent(new Event('input', { bubbles: true })); const beforeSync = document.querySelector('#validation').textContent; document.querySelector('[data-action="sync-subject-appearances"]').click(); return { durationWarning: beforeSync.includes('留给表演动作的时间可能不足'), retentionWarning: beforeSync.includes('retention_analysis尚未登记'), appearances: document.querySelector('[data-entity="subjects"][data-key="appears"]').value }; })()`);
+check("validator warns about a crowded final shot and Subject appearances can sync from Shot references", timingAndSync.durationWarning && timingAndSync.retentionWarning && timingAndSync.appearances === '1, 3', JSON.stringify(timingAndSync));
 await evaluate(`(() => { const select = document.querySelector('#task-preset-select'); select.value = 'ref-general'; select.dispatchEvent(new Event('change', { bubbles: true })); document.querySelector('#task-preset-apply').click(); })()`);
 
 await evaluate(`document.querySelector('[data-mode="t2va"]').click()`);
@@ -205,10 +295,9 @@ const workspaceBackup = await evaluate(`(async () => {
 })()`);
 check("workspace backup exports JSON and imports a migrated complete workspace", workspaceBackup.exportedName.endsWith('.json') && workspaceBackup.activeMode === 't2va' && workspaceBackup.focus && workspaceBackup.duration === '9.25' && workspaceBackup.schema === 2 && workspaceBackup.menuClosed, JSON.stringify(workspaceBackup));
 
-const desktopLayout = await evaluate(`(() => { const workspace = document.querySelector('.workspace').getBoundingClientRect(); const editor = document.querySelector('.editor-pane').getBoundingClientRect(); const preview = document.querySelector('.preview-pane').getBoundingClientRect(); return { editor: editor.width, preview: preview.width, workspace: workspace.width }; })()`);
-check("desktop editor receives more space", desktopLayout.editor > desktopLayout.preview && desktopLayout.editor + desktopLayout.preview <= desktopLayout.workspace + 2, JSON.stringify(desktopLayout));
-
 await evaluate(`(() => { document.querySelector('[data-mode="ref"]').click(); document.querySelector('#load-sample').click(); document.querySelector('#editor-root').scrollTop = 0; window.scrollTo(0, 0); })()`);
+const desktopLayout = await evaluate(`(() => { const workspace = document.querySelector('.workspace').getBoundingClientRect(); const editor = document.querySelector('.editor-pane').getBoundingClientRect(); const preview = document.querySelector('.preview-pane').getBoundingClientRect(); const root = document.querySelector('#editor-root').getBoundingClientRect(); return { editorWidth: editor.width, previewWidth: preview.width, workspaceWidth: workspace.width, bottomGap: Math.abs(editor.bottom - root.bottom), rootOverflow: getComputedStyle(document.querySelector('#editor-root')).overflowY, scrollable: document.querySelector('#editor-root').scrollHeight >= document.querySelector('#editor-root').clientHeight }; })()`);
+check("desktop editor receives more space and its scroll area fills the column without a blank bottom", desktopLayout.editorWidth > desktopLayout.previewWidth && desktopLayout.editorWidth + desktopLayout.previewWidth <= desktopLayout.workspaceWidth + 2 && desktopLayout.bottomGap <= 2 && desktopLayout.rootOverflow === 'auto' && desktopLayout.scrollable, JSON.stringify(desktopLayout));
 await command("Emulation.setDeviceMetricsOverride", { width: 390, height: 844, deviceScaleFactor: 1, mobile: true });
 await evaluate(`new Promise((resolve) => setTimeout(resolve, 1900))`);
 const mobileCapture = await command("Page.captureScreenshot", { format: "png", captureBeyondViewport: false });
