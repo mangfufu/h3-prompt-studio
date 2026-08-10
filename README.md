@@ -25,7 +25,7 @@
 需要 Node.js 18 或更高版本。
 
 ```bash
-git clone https://github.com/YOUR_NAME/h3-prompt-studio.git
+git clone https://github.com/mangfufu/h3-prompt-studio.git
 cd h3-prompt-studio
 npm start
 ```
