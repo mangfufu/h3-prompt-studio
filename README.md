@@ -6,6 +6,8 @@ MiniMax H3 Prompts Studio 是一个在浏览器本地运行的视频提示词编
 
 > 本项目是独立第三方工具，与 MiniMax 官方无关。
 
+![MiniMax H3 Prompts Studio 界面](assets/minimax-h3-prompts-studio.png)
+
 ## 功能
 
 - 支持全能参考、文生视频、图生视频和首尾帧视频四种模式

@@ -6,6 +6,8 @@ MiniMax H3 Prompts Studio is a local, browser-based video prompt editor for orga
 
 > This is an independent third-party project and is not affiliated with MiniMax.
 
+![MiniMax H3 Prompts Studio interface](assets/minimax-h3-prompts-studio.png)
+
 ## Features
 
 - Supports reference-to-video, text-to-video, image-to-video, and first/last-frame video modes

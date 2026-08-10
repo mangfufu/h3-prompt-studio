@@ -1,7 +1,8 @@
 (() => {
   "use strict";
 
-  const STORAGE_KEY = "h3-prompt-studio-v1";
+  const STORAGE_KEY = "minimax-h3-prompts-studio-v1";
+  const LEGACY_STORAGE_KEY = "h3-prompt-studio-v1";
   const APP_VERSION = "1.0.0";
   const SCHEMA_VERSION = 2;
   const MODE_META = {
@@ -826,9 +827,13 @@
 
   function loadStore() {
     try {
-      const raw = localStorage.getItem(STORAGE_KEY);
+      const current = localStorage.getItem(STORAGE_KEY);
+      const legacy = current ? null : localStorage.getItem(LEGACY_STORAGE_KEY);
+      const raw = current || legacy;
       if (!raw) return defaultStore();
-      return normalizeStore(JSON.parse(raw));
+      const normalized = normalizeStore(JSON.parse(raw));
+      if (legacy) localStorage.setItem(STORAGE_KEY, JSON.stringify(normalized));
+      return normalized;
     } catch {
       return defaultStore();
     }

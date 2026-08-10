@@ -189,7 +189,7 @@ const workspaceBackup = await evaluate(`(async () => {
   HTMLAnchorElement.prototype.click = function () { exportedName = this.download; };
   document.querySelector('#export-workspace').click();
   HTMLAnchorElement.prototype.click = originalClick;
-  const workspace = JSON.parse(localStorage.getItem('h3-prompt-studio-v1'));
+  const workspace = JSON.parse(localStorage.getItem('minimax-h3-prompts-studio-v1'));
   workspace.activeMode = 't2va';
   workspace.focusMode = true;
   workspace.modes.t2va.duration = '9.25';
@@ -200,7 +200,7 @@ const workspaceBackup = await evaluate(`(async () => {
   window.confirm = () => true;
   input.dispatchEvent(new Event('change', { bubbles: true }));
   await new Promise((resolve) => setTimeout(resolve, 250));
-  const saved = JSON.parse(localStorage.getItem('h3-prompt-studio-v1'));
+  const saved = JSON.parse(localStorage.getItem('minimax-h3-prompts-studio-v1'));
   return { exportedName, activeMode: document.querySelector('.mode-tab.active').dataset.mode, focus: Boolean(document.querySelector('.focus-notice')), duration: document.querySelector('input[data-global="duration"]').value, schema: saved.schemaVersion, menuClosed: !document.querySelector('#project-menu').open };
 })()`);
 check("workspace backup exports JSON and imports a migrated complete workspace", workspaceBackup.exportedName.endsWith('.json') && workspaceBackup.activeMode === 't2va' && workspaceBackup.focus && workspaceBackup.duration === '9.25' && workspaceBackup.schema === 2 && workspaceBackup.menuClosed, JSON.stringify(workspaceBackup));
