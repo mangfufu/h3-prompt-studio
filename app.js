@@ -3,7 +3,7 @@
 
   const STORAGE_KEY = "minimax-h3-prompts-studio-v1";
   const LEGACY_STORAGE_KEY = "h3-prompt-studio-v1";
-  const APP_VERSION = "1.2.0";
+  const APP_VERSION = "1.3.0";
   const SCHEMA_VERSION = 2;
   const MODE_META = {
     ref: {
@@ -165,6 +165,72 @@
       ],
     },
   ];
+  const SOUND_PRESET_GROUPS = [
+    {
+      key: "ambience",
+      title: "环境声",
+      note: "写入 overall_soundscape",
+      target: "soundscape",
+      items: [
+        { label: "室内底噪", note: "Indoor room tone", token: "Natural indoor room tone continues throughout the video." },
+        { label: "室外底噪", note: "Outdoor ambience", token: "Natural outdoor ambience continues throughout the video." },
+        { label: "夜晚环境", note: "Night ambience", token: "Low nighttime ambience continues beneath the scene." },
+        { label: "稳定雨声", note: "Steady rain", token: "Steady rain falls in the background." },
+        { label: "轻微风声", note: "Soft wind", token: "Soft wind moves through the environment." },
+        { label: "城市交通", note: "Distant traffic", token: "Distant traffic and low city ambience remain audible." },
+        { label: "人群背景", note: "Crowd murmur", token: "Low crowd murmur continues in the background." },
+        { label: "设备嗡鸣", note: "Ventilation hum", token: "A low ventilation hum continues throughout the scene." },
+      ],
+    },
+    {
+      key: "physical-sound",
+      title: "动作声",
+      note: "与可见物理动作同步",
+      target: "soundscape",
+      items: [
+        { label: "自然脚步", note: "Footsteps", token: "Footsteps sound naturally against the floor." },
+        { label: "衣物摩擦", note: "Fabric movement", token: "Soft fabric movement accompanies the character's actions." },
+        { label: "物体拿放", note: "Object handling", token: "Subtle object-handling sounds remain synchronized with the visible actions." },
+        { label: "开门关门", note: "Door movement", token: "The door hinges move softly before the latch clicks shut." },
+        { label: "纸张摩擦", note: "Paper rustle", token: "Paper rustles softly with each movement." },
+        { label: "金属碰撞", note: "Metal impact", token: "Small metallic impacts ring out briefly." },
+        { label: "明显撞击", note: "Sharp impact", token: "A sharp physical impact is followed by a short decay." },
+        { label: "家具轻响", note: "Furniture creak", token: "The furniture creaks softly under shifting weight." },
+      ],
+    },
+    {
+      key: "nonverbal-human",
+      title: "人物声音",
+      note: "非台词、非歌唱的人声",
+      target: "soundscape",
+      items: [
+        { label: "自然呼吸", note: "Breathing", token: "Natural breathing remains close and clearly audible." },
+        { label: "急促呼吸", note: "Heavy breathing", token: "Breathing becomes faster and heavier." },
+        { label: "轻声叹息", note: "Quiet sigh", token: "A quiet sigh is heard." },
+        { label: "自然笑声", note: "Laughter", token: "Brief natural laughter is heard." },
+        { label: "压抑抽泣", note: "Sobbing", token: "Quiet sobbing and uneven breathing are audible." },
+        { label: "轻微喘息", note: "Panting", token: "Soft panting remains audible at close range." },
+        { label: "短促咳嗽", note: "Cough", token: "A brief cough breaks the room tone." },
+        { label: "吞咽声", note: "Swallow", token: "A subtle swallow is audible at close range." },
+      ],
+    },
+    {
+      key: "music",
+      title: "非画面配乐",
+      note: "自动关闭“无非叙事配乐”",
+      target: "music",
+      items: [
+        { label: "稀疏钢琴", note: "Piano and strings", token: "Sparse piano notes at a slow tempo are joined by sustained low strings and fade gently at the end." },
+        { label: "低频电子", note: "Electronic pulse", token: "A low electronic pulse moves at a slow tempo with restrained dynamics and a short fade at the end." },
+        { label: "木吉他", note: "Acoustic guitar", token: "A soft acoustic-guitar pattern plays at a moderate tempo with sparse upright-bass notes." },
+        { label: "低音弦乐", note: "Low strings", token: "Sustained low strings move at a slow tempo and gradually increase in volume before receding." },
+        { label: "轻柔合成器", note: "Synth pads", token: "Soft sustained synthesizer pads play at a slow tempo with minimal rhythmic movement." },
+        { label: "克制鼓点", note: "Percussion", token: "A restrained percussion pattern plays at a moderate tempo with evenly spaced low drum hits." },
+        { label: "钢琴渐弱", note: "Piano fade", token: "Widely spaced solo-piano notes play at a slow tempo and gradually decrease in volume." },
+        { label: "弦乐渐强", note: "String swell", token: "Sustained strings gradually increase in volume over a slow pulse, then stop cleanly at the end." },
+      ],
+    },
+  ];
   const BUILT_IN_PRESETS = [
     { id: "ref-general", mode: "ref", group: "通用", title: "通用参考生成", description: "Picture 1 定义 Subject 1；自动建立完整六字段，可直接改 Shot。", factory: generalRefPreset },
     { id: "video-character-replacement", mode: "ref", group: "特别", title: "原视频角色替换", description: "用 Picture 1 的角色替换 Video 1 原角色，保留原动作、机位、剪辑、时序、环境和灯光。", factory: videoCharacterReplacementPreset },
@@ -289,6 +355,13 @@
       usage: "使用 1–4 个连续英文句子，例如室内底噪、雨声、脚步、衣料摩擦、呼吸或撞击。",
       output: "写入 overall_soundscape 字段；具体时刻发生的同步声音仍可同时写在对应 Shot。",
       caution: "不要在这里重复完整台词、歌词或观众才能听见的配乐；只有明确要求全片完全静音时才使用 N/A。",
+    },
+    soundLibrary: {
+      title: "声音快速库",
+      purpose: "快速向声音字段插入符合 H3 分类规则的英文环境声、动作声、人物非语言声和非叙事配乐描述。",
+      usage: "先将光标放入目标声音输入框，再展开并点击词条。环境声、动作声和人物声音写入 overall_soundscape；配乐词条写入 non_diegetic_music。",
+      output: "所选句子会在当前光标处追加。点击配乐词条时，工具会自动关闭“无非叙事配乐”并显示配乐输入框。",
+      caution: "台词和歌唱仍应写在对应 Shot 的 <d> 标签内；角色能听见的现场音乐属于叙事内声音，也应写进 Shot，不要放在非画面配乐中。",
     },
     noMusic: {
       title: "无非叙事配乐",
@@ -1573,6 +1646,26 @@
     </details>`;
   }
 
+  function renderSoundLibrary() {
+    const groups = SOUND_PRESET_GROUPS.map((group) => `
+      <section class="shot-language-group sound-library-group" data-sound-group="${esc(group.key)}">
+        <div class="shot-language-group-title">
+          <strong>${esc(group.title)}</strong>
+          <span>${esc(group.note)}</span>
+        </div>
+        <div class="shot-language-grid sound-preset-grid">
+          ${group.items.map((item) => `<button class="shot-language-button sound-preset-button" type="button" title="${esc(item.token)}" data-action="insert-sound-preset" data-target="${esc(group.target)}" data-token="${esc(item.token)}"><strong>${esc(item.label)}</strong><small>${esc(item.note)}</small></button>`).join("")}
+        </div>
+      </section>`).join("");
+    return `<details class="shot-language-library sound-library">
+      <summary>
+        <span class="shot-language-summary-copy"><strong>声音快速库</strong><small>环境声 · 动作声 · 人物声音 · 非画面配乐</small></span>
+        ${helpTriggerMarkup("soundLibrary", "shot-language-help sound-library-help")}
+      </summary>
+      <div class="shot-language-content sound-library-content">${groups}</div>
+    </details>`;
+  }
+
   function renderShots(modeState, mode) {
     const tokens = availableTokens(modeState, mode);
     const cards = modeState.shots.map((shot, index) => `
@@ -1626,6 +1719,7 @@
           <span>overall_soundscape</span>
           <textarea data-global="soundscape" placeholder="Ambient sound, physical action sounds, and non-verbal human sounds...">${esc(modeState.soundscape)}</textarea>
         </label>
+        <div class="field full">${renderSoundLibrary()}</div>
         <div class="field full switch-row">
           <div><strong>无非叙事配乐</strong><small>开启后固定输出 non_diegetic_music: N/A</small></div>
           <label class="switch"><input type="checkbox" data-global="noMusic" ${modeState.noMusic ? "checked" : ""} /><span></span></label>
@@ -2326,6 +2420,41 @@
     insertToken(button, modeState);
   }
 
+  function insertSoundPreset(button, modeState) {
+    const key = button.dataset.target;
+    const token = button.dataset.token;
+    if (!['soundscape', 'music'].includes(key) || !token) return;
+
+    let textarea = editorRoot.querySelector(`textarea[data-global="${key}"]`);
+    let value = String(modeState[key] || "");
+    if (value.trim() === "N/A") value = "";
+    const start = textarea && Number.isInteger(textarea.selectionStart) ? textarea.selectionStart : value.length;
+    const end = textarea && Number.isInteger(textarea.selectionEnd) ? textarea.selectionEnd : start;
+    const before = value.slice(0, start);
+    const after = value.slice(end);
+    const leftSpace = before && !/\s$/.test(before) ? " " : "";
+    const rightSpace = after && !/^\s/.test(after) ? " " : "";
+    const insertion = `${leftSpace}${token}${rightSpace}`;
+    const nextValue = `${before}${insertion}${after}`;
+    const caret = before.length + insertion.length - rightSpace.length;
+
+    recordHistory(`insert-sound-preset:${key}`);
+    modeState[key] = nextValue;
+    const needsMusicField = key === "music" && modeState.noMusic;
+    if (needsMusicField) {
+      modeState.noMusic = false;
+      renderEditor();
+      textarea = editorRoot.querySelector('textarea[data-global="music"]');
+    } else {
+      if (textarea) textarea.value = nextValue;
+      updateOutput();
+    }
+    if (textarea) {
+      textarea.focus();
+      textarea.setSelectionRange(caret, caret);
+    }
+  }
+
   sectionNavHost.addEventListener("click", (event) => {
     const button = event.target.closest('button[data-action="jump-section"]');
     if (!button) return;
@@ -2389,6 +2518,10 @@
     }
     if (action === "insert-dialogue") {
       insertDialogue(button, modeState);
+      return;
+    }
+    if (action === "insert-sound-preset") {
+      insertSoundPreset(button, modeState);
       return;
     }
     if (action === "apply-style-mix") {
