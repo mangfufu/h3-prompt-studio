@@ -93,6 +93,7 @@
       title: "景别",
       note: "决定画面看多近",
       items: [
+        { label: "近景开场", note: "Close opening", token: "A close shot frames " },
         { label: "大远景", note: "Extreme wide", token: "An extreme wide shot establishes " },
         { label: "远景", note: "Wide", token: "A wide shot frames " },
         { label: "中远景", note: "Medium wide", token: "A medium-wide shot frames " },
@@ -1572,20 +1573,6 @@
     </details>`;
   }
 
-  function renderPhraseTools(shot, index, modeState, mode) {
-    const phrases = [
-      index === 0
-        ? ["A close shot frames ", "近景开场", 0]
-        : ["the camera cuts to a close-up of ", "切到近景", 0],
-      ["The camera pushes in with small amplitude at slow speed.", "缓慢推近", 0],
-      ["The camera holds a static shot.", "固定机位", 0],
-    ];
-    return `<div class="phrase-tools">
-      <span>规范句</span>
-      <div>${phrases.map(([text, label, cursorBack]) => `<button class="phrase-button" type="button" data-action="insert-token" data-collection="shots" data-id="${esc(shot.id)}" data-key="content" data-token="${esc(text)}" data-cursor-back="${cursorBack}">${esc(label)}</button>`).join("")}</div>
-    </div>${renderShotLanguageLibrary(shot)}${renderDialogueBuilder(shot, modeState, mode)}`;
-  }
-
   function renderShots(modeState, mode) {
     const tokens = availableTokens(modeState, mode);
     const cards = modeState.shots.map((shot, index) => `
@@ -1612,7 +1599,7 @@
             <span>英文镜头描述（中文仅放在台词标签或画面文字中）</span>
             <textarea data-entity="shots" data-id="${shot.id}" data-key="content" placeholder="${esc(shotPlaceholder(mode, index))}">${esc(shot.content)}</textarea>
           </label>
-          <div class="field full">${renderPhraseTools(shot, index, modeState, mode)}</div>
+          <div class="field full">${renderShotLanguageLibrary(shot)}${renderDialogueBuilder(shot, modeState, mode)}</div>
           <div class="field full">
             ${renderTokenTools(tokens, "shots", shot.id, "content")}
           </div>

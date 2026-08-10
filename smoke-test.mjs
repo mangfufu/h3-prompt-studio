@@ -131,6 +131,8 @@ const shotLanguage = await evaluate(`(() => {
     groups: library.querySelectorAll('.shot-language-group').length,
     buttons: library.querySelectorAll('.shot-language-button').length,
     labels: [...library.querySelectorAll('.shot-language-group-title strong')].map((item) => item.textContent),
+    toolLabels: [...library.querySelectorAll('.shot-language-button strong')].map((item) => item.textContent),
+    separatePhraseBarRemoved: !document.querySelector('.phrase-tools'),
     inserted: after.includes('The camera slowly pans right.'),
     promptUpdated: document.querySelector('#prompt-output').textContent.includes('The camera slowly pans right.'),
     helpTitle,
@@ -140,7 +142,7 @@ const shotLanguage = await evaluate(`(() => {
   document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
   return result;
 })()`);
-check("each Shot has a collapsed four-part shot-language library with insertable standard English phrases", shotLanguage.initiallyClosed && shotLanguage.helpDoesNotOpenLibrary && shotLanguage.groups === 4 && shotLanguage.buttons >= 45 && shotLanguage.labels.join('|') === '景别|视角|构图|运镜' && shotLanguage.inserted && shotLanguage.promptUpdated && shotLanguage.helpTitle === '镜头语言库', JSON.stringify(shotLanguage));
+check("each Shot has a collapsed four-part shot-language library with insertable standard English phrases", shotLanguage.initiallyClosed && shotLanguage.helpDoesNotOpenLibrary && shotLanguage.groups === 4 && shotLanguage.buttons >= 48 && shotLanguage.labels.join('|') === '景别|视角|构图|运镜' && ['近景开场','缓慢推近','固定机位'].every((label) => shotLanguage.toolLabels.includes(label)) && shotLanguage.separatePhraseBarRemoved && shotLanguage.inserted && shotLanguage.promptUpdated && shotLanguage.helpTitle === '镜头语言库', JSON.stringify(shotLanguage));
 
 const historyRoundtrip = await evaluate(`(() => {
   const before = ${JSON.stringify(shotLanguage.before)};
