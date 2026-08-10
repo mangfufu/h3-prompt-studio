@@ -22,21 +22,24 @@
 
 ## 快速开始
 
-需要 Node.js 18 或更高版本。
-
 ```bash
 git clone https://github.com/mangfufu/h3-prompt-studio.git
 cd h3-prompt-studio
+```
+
+直接双击 `index.html` 即可使用，不需要安装依赖，也不需要部署服务器。
+
+如果浏览器限制本地文件的存储或下载功能，可以选择使用项目附带的本地静态服务器。该服务器只在你的电脑上运行，不会把内容上传到互联网：
+
+```bash
 npm start
 ```
 
-浏览器打开：
+然后打开：
 
 ```text
 http://127.0.0.1:4173
 ```
-
-这个项目也可以直接双击 `index.html` 使用；通过本地静态服务器运行时，浏览器存储和下载行为通常更稳定。
 
 ## 使用方法
 
@@ -89,16 +92,9 @@ I2VA 会自动添加 0 秒首帧指令；FL2VA 会自动添加首尾帧时间对
 - 清除浏览器站点数据会删除本地内容。
 - 建议定期使用“项目 → 导出工作区”保存 JSON 备份。
 
-## GitHub Pages
+## 本地开发与验证（可选）
 
-本项目没有构建步骤，可以直接部署到 GitHub Pages：
-
-1. 将代码推送到 GitHub。
-2. 打开仓库的 **Settings → Pages**。
-3. 选择 **Deploy from a branch**。
-4. 选择 `main` 分支和 `/ (root)` 目录。
-
-## 开发与验证
+以下命令仅供修改源码或运行测试时使用，普通使用不需要 Node.js。
 
 检查 JavaScript 语法：
 
@@ -123,8 +119,7 @@ npm run smoke
 ├─ app.js              # 状态、模板、格式生成和校验逻辑
 ├─ dev-server.mjs      # 零依赖本地静态服务器
 ├─ smoke-test.mjs      # 浏览器冒烟测试
-├─ package.json        # 本地运行与检查命令
-└─ .github/workflows   # GitHub Actions 语法检查
+└─ package.json        # 可选的本地运行与检查命令
 ```
 
 ## 发布说明
