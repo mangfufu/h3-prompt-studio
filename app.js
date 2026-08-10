@@ -3,7 +3,7 @@
 
   const STORAGE_KEY = "minimax-h3-prompts-studio-v1";
   const LEGACY_STORAGE_KEY = "h3-prompt-studio-v1";
-  const APP_VERSION = "1.3.0";
+  const APP_VERSION = "1.4.0";
   const SCHEMA_VERSION = 2;
   const MODE_META = {
     ref: {
@@ -71,6 +71,12 @@
     fully_copy: "完整复制 · fully_copy",
     partially_copy: "部分复制 · partially_copy",
     reference: "参考特征 · reference",
+  };
+  const FIELD_STARTERS = {
+    summary: "The target video shows ",
+    subjectDefinition: "is the referenced visible subject.",
+    subjectRetention: "the referenced identity and defining visible features remain consistent.",
+    soundscape: "Natural environmental room tone and subtle synchronized physical movement sounds continue throughout the video.",
   };
   const STYLE_PRESETS = [
     { value: "live-action", label: "真人实拍", note: "Live-action" },
@@ -268,7 +274,7 @@
     subjectDefinition: {
       title: "Subject 定义内容",
       purpose: "定义一个可在目标视频中反复调用的人物、场景、物体、服装、动作或视觉效果。",
-      usage: "写清来源标签和需要识别的稳定特征，例如“is the woman in <Picture 1>, with long black hair...”。",
+      usage: "新增 Subject 会先填入一个可编辑的 is... 起句；请继续写清来源标签和稳定特征，例如“is the woman in <Picture 1>, with long black hair...”。",
       output: "工具会自动在句首添加 <Subject N>，并写入 Ref2VA 的 subject_definitions。",
       caution: "Subject 表示可复用的可见内容，不等同于源文件本身；同一 Subject 可以同时来自图片和视频。",
     },
@@ -296,7 +302,7 @@
     summaryContent: {
       title: "Summary 汇总句",
       purpose: "用短句概括目标视频、主要事件和参考资产的核心关系。",
-      usage: "可以拆成多条编辑，最终会按当前顺序连接成一个英文段落，并引用已定义标签。",
+      usage: "新增汇总句默认以“The target video shows ...”开头；可以拆成多条编辑，最终会按当前顺序连接成一个英文段落，并引用已定义标签。",
       output: "写入 Ref2VA 的 summary，前方自动添加已勾选的任务类型。",
       caution: "不要在这里新建未定义的标签，也不要把它写成逐镜头剧情细节。",
     },
@@ -331,7 +337,7 @@
     shotContent: {
       title: "镜头内容",
       purpose: "描述该镜头中真正可见和可听的内容，是视频提示词的主要正文。",
-      usage: "按构图与景别、主体和环境、动作与状态变化、摄影机运动、同步物理声音的顺序写。Ref2VA 在内容实际出现处插入对应标签。",
+      usage: "新增 Shot 会先填入适合当前模式的英文起句。继续按构图与景别、主体和环境、动作与状态变化、摄影机运动、同步物理声音的顺序写。Ref2VA 在内容实际出现处插入对应标签。",
       output: "Ref2VA 写入 detailed_description；T2VA/I2VA/FL2VA 写入 integrated_multimodal_description。文本原样保留。",
       caution: "说话者使用稳定的 (S1) 编号，台词写成 <d>[Chinese] 原文</d>；Shot 2 以后正文通常从切镜动作继续。",
     },
@@ -549,12 +555,19 @@
   function createSubject(overrides = {}) {
     return {
       id: uid(),
-      definition: "",
+      definition: FIELD_STARTERS.subjectDefinition,
       appears: "1",
       relation: "fully_preserved",
-      retention: "",
+      retention: FIELD_STARTERS.subjectRetention,
       ...overrides,
     };
+  }
+
+  function shotStarter(mode, index = 0) {
+    if (index > 0) return "the camera cuts to ";
+    if (mode === "i2va") return "The subject shown in <Picture 1> preserves the reference appearance and composition, then ";
+    if (mode === "fl2va") return "The subject begins from <Picture 1> and changes continuously before settling into <Picture 2> as ";
+    return "A close shot frames ";
   }
 
   function presetDuration(duration) {
@@ -618,7 +631,7 @@
         }),
       ],
       taskTypes: ["reference generation"],
-      summaries: [{ id: uid(), content: "<Subject 1> and <Subject 2> share a tense encounter inside <Subject 3>." }],
+      summaries: [{ id: uid(), content: "The target video shows <Subject 1> and <Subject 2> sharing a tense encounter inside <Subject 3>." }],
       shots: [
         { id: uid(), start: "", content: "A side close shot frames <Subject 1> and <Subject 2> facing each other inside <Subject 3>. <Subject 1> takes a small step closer while <Subject 2> remains still and watches." },
         { id: uid(), start: presetStart(duration, 0.55), content: "the camera cuts to a close reaction shot of <Subject 2>. The character's eyes shift briefly toward <Subject 1>, followed by a restrained inhale." },
@@ -648,7 +661,7 @@
         }),
       ],
       taskTypes: ["reference generation"],
-      summaries: [{ id: uid(), content: "<Subject 1> presents <Subject 2> inside <Subject 3> in a concise product demonstration." }],
+      summaries: [{ id: uid(), content: "The target video shows <Subject 1> presenting <Subject 2> inside <Subject 3> in a concise product demonstration." }],
       shots: [
         { id: uid(), start: "", content: "A close shot frames <Subject 1> beside <Subject 2> inside <Subject 3>. The presenter reaches toward the product and lifts it smoothly into the key light." },
         { id: uid(), start: presetStart(duration, 0.58), content: "the camera cuts to an extreme close-up of <Subject 2> in <Subject 1>'s hands, revealing its material, surface finish, controls, and branding placement." },
@@ -788,10 +801,10 @@
   function blankMode(mode) {
     const base = {
       duration: "8.00",
-      styles: [],
+      styles: ["live-action", "cinematic"],
       customStyle: "",
-      shots: [{ id: uid(), start: "", content: "" }],
-      soundscape: "",
+      shots: [{ id: uid(), start: "", content: shotStarter(mode, 0) }],
+      soundscape: FIELD_STARTERS.soundscape,
       noMusic: true,
       music: "",
     };
@@ -801,7 +814,7 @@
         references: [],
         subjects: [],
         taskTypes: ["reference generation"],
-        summaries: [],
+        summaries: [{ id: uid(), content: FIELD_STARTERS.summary }],
       };
     }
     if (mode === "fl2va") return { ...base, lastShot: "1" };
@@ -836,7 +849,7 @@
         ],
         taskTypes: ["reference generation"],
         summaries: [
-          { id: uid(), content: "The target is an eight-second suspense video." },
+          { id: uid(), content: "The target video is an eight-second suspense video." },
           { id: uid(), content: "<Subject 1> discovers a sealed envelope inside <Subject 2>." },
         ],
         shots: [
@@ -1519,7 +1532,7 @@
             </div>
             <label class="field">
               <span>汇总句</span>
-              <textarea data-entity="summaries" data-id="${item.id}" data-key="content" placeholder="The target is an eight-second video...">${esc(item.content)}</textarea>
+              <textarea data-entity="summaries" data-id="${item.id}" data-key="content" placeholder="The target video shows...">${esc(item.content)}</textarea>
             </label>
           </article>`).join("")
       : `<div class="empty-state">尚未添加汇总句</div>`;
@@ -2031,6 +2044,7 @@
       if (!modeState.summaries.some((item) => item.content.trim())) warnings.push("Summary尚未填写");
       modeState.subjects.forEach((subject, index) => {
         if (!subject.definition.trim()) errors.push(`Subject ${index + 1}缺少定义`);
+        if (subject.definition.trim() === FIELD_STARTERS.subjectDefinition) warnings.push(`Subject ${index + 1}仍是默认定义起句，请补充来源和可识别特征`);
         if (!subject.retention.trim()) warnings.push(`Subject ${index + 1}缺少保留描述`);
         checkEnglishField(subject.definition, `Subject ${index + 1}定义`, warnings);
         checkEnglishField(subject.retention, `Subject ${index + 1}保留描述`, warnings);
@@ -2051,7 +2065,10 @@
           if (extra.length) warnings.push(`${label}登记了Shot ${extra.join(", ")}，但对应Shot正文没有该标签`);
         }
       });
-      modeState.summaries.forEach((item, index) => checkEnglishField(item.content, `Summary ${index + 1}`, warnings));
+      modeState.summaries.forEach((item, index) => {
+        if (item.content.trim() === FIELD_STARTERS.summary.trim()) warnings.push(`Summary ${index + 1}仍是默认起句，请补充目标视频内容`);
+        checkEnglishField(item.content, `Summary ${index + 1}`, warnings);
+      });
       refLabels(modeState).forEach((ref) => {
         const hasDefinition = Boolean(String(ref.definition || "").trim());
         const hasRetention = Boolean(String(ref.retention || "").trim());
@@ -2083,6 +2100,7 @@
     modeState.shots.forEach((shot, index) => {
       const content = String(shot.content || "");
       if (!content.trim()) warnings.push(`Shot ${index + 1}内容为空`);
+      if (content.trim() === shotStarter(mode, index).trim()) warnings.push(`Shot ${index + 1}仍是默认起句，请补充分镜内容`);
       checkEnglishField(content, `Shot ${index + 1}`, warnings);
       checkDialogueSyntax(content, index + 1, mode, errors, warnings, speakerEvents);
       if (/\[Shot\s+\d+\]/i.test(content) || /\bAt\s+\d{2}:\d{2}\.\d{3}\b/i.test(content)) {
@@ -2191,11 +2209,11 @@
 
   function addEntity(action, modeState) {
     if (action === "add-subject") {
-      modeState.subjects.push({ id: uid(), definition: "", appears: "1", relation: "fully_preserved", retention: "" });
+      modeState.subjects.push(createSubject());
     } else if (action === "add-summary") {
-      modeState.summaries.push({ id: uid(), content: "" });
+      modeState.summaries.push({ id: uid(), content: FIELD_STARTERS.summary });
     } else if (action === "add-shot") {
-      modeState.shots.push({ id: uid(), start: "", content: "" });
+      modeState.shots.push({ id: uid(), start: "", content: shotStarter(store.activeMode, modeState.shots.length) });
       if (store.activeMode === "fl2va") modeState.lastShot = String(modeState.shots.length);
     }
   }

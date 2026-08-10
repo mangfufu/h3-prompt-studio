@@ -1,6 +1,6 @@
 {
   "name": "minimax-h3-prompts-studio",
-  "version": "1.3.0",
+  "version": "1.4.0",
   "private": true,
   "description": "A local structured prompt editor for MiniMax H3 Ref2VA, T2VA, I2VA, and FL2VA workflows.",
   "type": "module",

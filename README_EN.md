@@ -14,6 +14,7 @@ MiniMax H3 Prompts Studio is a local, browser-based video prompt editor for orga
 - Adds characters, images, videos, audio, and scene references through structured forms
 - Sets full or partial preservation requirements for each subject
 - Organizes shots, timestamps, actions, camera movement, and dialogue with shot cards
+- Provides editable standard-English starters when adding a Summary, Subject, Shot, or resetting a mode
 - Includes a collapsible shot-language library in every Shot for shot sizes, viewpoints, composition, and camera movement
 - Binds subjects, global speaker IDs, and language tags through a dialogue inserter
 - Synchronizes Subject appearance lists from the references used in Shot content
