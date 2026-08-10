@@ -2199,7 +2199,7 @@
 
   $("#export-workspace").addEventListener("click", () => {
     const payload = {
-      application: "H3 Prompt Studio",
+      application: "MiniMax H3 Prompts Studio",
       version: APP_VERSION,
       exportedAt: new Date().toISOString(),
       workspace: store,
@@ -2208,7 +2208,7 @@
     const url = URL.createObjectURL(blob);
     const anchor = document.createElement("a");
     anchor.href = url;
-    anchor.download = `h3-prompt-studio-${new Date().toISOString().slice(0, 10)}.json`;
+    anchor.download = `minimax-h3-prompts-studio-${new Date().toISOString().slice(0, 10)}.json`;
     document.body.appendChild(anchor);
     anchor.click();
     anchor.remove();

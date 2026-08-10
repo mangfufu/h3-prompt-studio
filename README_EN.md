@@ -1,8 +1,8 @@
-# H3 Prompt Studio
+# MiniMax H3 Prompts Studio
 
 [中文](README.md)
 
-H3 Prompt Studio is a local, browser-based video prompt editor for organizing subjects, reference assets, shots, sound, and prompt structure through a clear visual interface.
+MiniMax H3 Prompts Studio is a local, browser-based video prompt editor for organizing subjects, reference assets, shots, sound, and prompt structure through a clear visual interface.
 
 > This is an independent third-party project and is not affiliated with MiniMax.
 

@@ -52,7 +52,7 @@ function check(name, passed, detail = "") {
 
 check("four mode tabs", await evaluate(`document.querySelectorAll('.mode-tab').length`) === 4);
 const formalShell = await evaluate(`(() => ({ title: document.title, brand: document.querySelector('.brand-block h1').textContent, guideSteps: document.querySelectorAll('.quick-start span').length, focusMode: Boolean(document.querySelector('.focus-notice')), navItems: document.querySelectorAll('.section-nav button').length, focusLabel: document.querySelector('#focus-toggle').textContent, projectActions: document.querySelectorAll('.project-menu-panel button').length, format: document.querySelector('#output-format').textContent }))()`);
-check("formal shell presents a four-step quick start and defaults to focused shot editing", formalShell.title === 'H3 Prompt Studio' && formalShell.brand === 'Prompt Studio' && formalShell.guideSteps === 4 && formalShell.focusMode && formalShell.navItems === 3 && formalShell.focusLabel === '打开完整设置' && formalShell.projectActions === 4 && formalShell.format.includes('官方六字段'), JSON.stringify(formalShell));
+check("formal shell presents a four-step quick start and defaults to focused shot editing", formalShell.title === 'MiniMax H3 Prompts Studio' && formalShell.brand === 'MiniMax H3 Prompts Studio' && formalShell.guideSteps === 4 && formalShell.focusMode && formalShell.navItems === 3 && formalShell.focusLabel === '打开完整设置' && formalShell.projectActions === 4 && formalShell.format.includes('官方六字段'), JSON.stringify(formalShell));
 const focusSwitch = await evaluate(`(() => { const before = document.querySelector('#prompt-output').textContent; document.querySelector('#focus-toggle').click(); return { preserved: before === document.querySelector('#prompt-output').textContent, fullSections: document.querySelectorAll('.section-nav button').length, button: document.querySelector('#focus-toggle').textContent, hiddenNotice: !document.querySelector('.focus-notice') }; })()`);
 check("focused and full views preserve the same prompt data", focusSwitch.preserved && focusSwitch.fullSections === 7 && focusSwitch.button === '只看分镜' && focusSwitch.hiddenNotice, JSON.stringify(focusSwitch));
 await evaluate(`document.querySelector('#load-sample').click()`);
@@ -194,7 +194,7 @@ const workspaceBackup = await evaluate(`(async () => {
   workspace.focusMode = true;
   workspace.modes.t2va.duration = '9.25';
   const transfer = new DataTransfer();
-  transfer.items.add(new File([JSON.stringify({ application: 'H3 Prompt Studio', workspace })], 'workspace.json', { type: 'application/json' }));
+  transfer.items.add(new File([JSON.stringify({ application: 'MiniMax H3 Prompts Studio', workspace })], 'workspace.json', { type: 'application/json' }));
   const input = document.querySelector('#workspace-file');
   input.files = transfer.files;
   window.confirm = () => true;

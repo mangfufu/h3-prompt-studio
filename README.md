@@ -1,8 +1,8 @@
-# H3 Prompt Studio
+# MiniMax H3 Prompts Studio
 
 [English](README_EN.md)
 
-H3 Prompt Studio 是一个在浏览器本地运行的视频提示词编辑工具，用来更直观地组织角色、参考素材、分镜、声音和提示词结构。
+MiniMax H3 Prompts Studio 是一个在浏览器本地运行的视频提示词编辑工具，用来更直观地组织角色、参考素材、分镜、声音和提示词结构。
 
 > 本项目是独立第三方工具，与 MiniMax 官方无关。
 
